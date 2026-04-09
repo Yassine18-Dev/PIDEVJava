@@ -9,7 +9,7 @@ public class Mydatabase {
     private static Mydatabase instance;
     private Connection cnx;
 
-    private final String URL = "jdbc:mysql://localhost:3307/pidevj?useSSL=false&serverTimezone=UTC";
+    private final String URL = "jdbc:mysql://localhost:3306/pidevj?useSSL=false&serverTimezone=UTC";
     private final String USER = "root";
     private final String PASSWORD = "";
 
