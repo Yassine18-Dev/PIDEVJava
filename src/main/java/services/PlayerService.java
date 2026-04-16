@@ -54,19 +54,13 @@ public class PlayerService implements IPlayerService {
         ps.setInt(6, player.getLeaguePoints());
 
         if (player.getTeamId() <= 0) {
-            ps.setNull(7, Types.INTEGER);
+            ps.setNull(7, java.sql.Types.INTEGER);
         } else {
             ps.setInt(7, player.getTeamId());
         }
 
         ps.setInt(8, player.getId());
-
-        int rows = ps.executeUpdate();
-        if (rows > 0) {
-            System.out.println("Player modifié avec succès.");
-        } else {
-            System.out.println("Aucun player trouvé avec cet id.");
-        }
+        ps.executeUpdate();
     }
 
     @Override

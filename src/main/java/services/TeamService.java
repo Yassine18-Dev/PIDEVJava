@@ -49,12 +49,7 @@ public class TeamService implements ITeamService {
         ps.setString(7, team.getBanner());
         ps.setInt(8, team.getId());
 
-        int rows = ps.executeUpdate();
-        if (rows > 0) {
-            System.out.println("Team modifiée avec succès.");
-        } else {
-            System.out.println("Aucune team trouvée avec cet id.");
-        }
+        ps.executeUpdate();
     }
 
     @Override
