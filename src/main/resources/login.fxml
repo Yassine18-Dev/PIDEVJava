@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<BorderPane xmlns="http://javafx.com/javafx/21"
+            xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="controllers.LoginController"
+            prefWidth="500.0"
+            prefHeight="400.0"
+            style="-fx-background-color: linear-gradient(to bottom right, #0f172a, #111827);">
+
+   <!-- TOP -->
+   <top>
+      <VBox alignment="CENTER" spacing="10"
+            style="-fx-padding: 30 20 20 20;">
+         <children>
+
+            <Label text=" Arena MIND"
+                   style="-fx-text-fill: white; -fx-font-size: 28px; -fx-font-weight: bold;" />
+
+            <Label text="Access your Esport dashboard"
+                   style="-fx-text-fill: #94a3b8; -fx-font-size: 14px;" />
+
+         </children>
+      </VBox>
+   </top>
+
+   <!-- CENTER -->
+   <center>
+      <VBox alignment="CENTER" spacing="15"
+            style="-fx-background-color: #111827; -fx-padding: 30; -fx-background-radius: 18; -fx-border-color: #1f2937; -fx-border-radius: 18;">
+         <children>
+
+            <TextField fx:id="tfEmail"
+                       promptText="Email"
+                       prefWidth="260"
+                       style="-fx-background-color: #1f2937; -fx-text-fill: white; -fx-prompt-text-fill: #94a3b8; -fx-background-radius: 10; -fx-border-color: #334155; -fx-border-radius: 10;" />
+
+            <PasswordField fx:id="pfPassword"
+                           promptText="Password"
+                           prefWidth="260"
+                           style="-fx-background-color: #1f2937; -fx-text-fill: white; -fx-prompt-text-fill: #94a3b8; -fx-background-radius: 10; -fx-border-color: #334155; -fx-border-radius: 10;" />
+
+            <Label fx:id="lblMessage"
+                   text=""
+                   style="-fx-text-fill: #f87171; -fx-font-size: 13px;" />
+
+            <Button text="Login"
+                    onAction="#login"
+                    prefWidth="260"
+                    style="-fx-background-color: #06b6d4; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 10;" />
+
+         </children>
+      </VBox>
+   </center>
+
+   <!-- BOTTOM -->
+   <bottom>
+      <VBox alignment="CENTER" spacing="8"
+            style="-fx-padding: 20;">
+         <children>
+
+            <Label text="Don’t have an account?"
+                   style="-fx-text-fill: #94a3b8;" />
+
+            <Button text="Go to Sign Up"
+                    onAction="#goToSignup"
+                    style="-fx-background-color: #8b5cf6; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 10;" />
+
+         </children>
+      </VBox>
+   </bottom>
+
+</BorderPane>

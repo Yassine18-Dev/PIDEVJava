@@ -6,36 +6,20 @@ import java.sql.SQLException;
 
 public class Mydatabase {
 
-<<<<<<< HEAD
     private static Mydatabase instance;
-    private Connection cnx;
-
-    private final String URL = "jdbc:mysql://localhost:3306/pidevj?useSSL=false&serverTimezone=UTC";
-    private final String USER = "root";
-    private final String PASSWORD = "";
-
-    private Mydatabase() {
-        try {
-            cnx = DriverManager.getConnection(URL, USER, PASSWORD);
-            System.out.println("Connexion base de données réussie.");
-        } catch (SQLException e) {
-            System.out.println("Erreur connexion : " + e.getMessage());
-=======
-    private final String URL = "jdbc:mysql://localhost:3306/javadb?useSSL=false&serverTimezone=UTC";
-    private final String USER = "root";
-    private final String PASSWORD = "";
-
     private Connection connection;
-    private static Mydatabase instance;
+
+    private final String URL = "jdbc:mysql://localhost:3307/pidevj?useSSL=false&serverTimezone=UTC";
+    private final String USER = "root";
+    private final String PASSWORD = "";
 
     private Mydatabase() {
         try {
             connection = DriverManager.getConnection(URL, USER, PASSWORD);
-            System.out.println("Database connected successfully.");
+            System.out.println("Connexion base de données réussie.");
         } catch (SQLException e) {
-            System.err.println("Database connection failed: " + e.getMessage());
-            throw new RuntimeException(e);
->>>>>>> origin/feature/team-player
+            System.err.println("Erreur connexion : " + e.getMessage());
+            throw new RuntimeException("Failed to connect to database", e);
         }
     }
 
@@ -46,12 +30,13 @@ public class Mydatabase {
         return instance;
     }
 
-<<<<<<< HEAD
-    public Connection getCnx() {
-        return cnx;
-=======
+    // Méthode principale
     public Connection getConnection() {
         return connection;
->>>>>>> origin/feature/team-player
+    }
+
+    // Méthode pour la compatibilité (alias de getConnection)
+    public Connection getCnx() {
+        return connection;
     }
 }
