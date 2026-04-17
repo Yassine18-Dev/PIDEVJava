@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.control.cell.*?>
+<?import javafx.scene.image.*?>
+<?import javafx.scene.text.*?>
+<?import javafx.collections.*?>
+<?import javafx.scene.control.TableView?>
+
+<VBox fx:controller="controllers.ProductManagementController"
+      xmlns:fx="http://javafx.com/fxml"
+      spacing="20" styleClass="content-area"
+      prefWidth="1200" prefHeight="800"
+      stylesheets="@../styles.css">
+
+    <!-- Header -->
+    <HBox alignment="CENTER_LEFT" spacing="20" styleClass="form-header">
+        <Button text="← Back" styleClass="button-secondary" onAction="#goBack"/>
+        <Region HBox.hgrow="ALWAYS"/>
+        <Label text="Product Management" 
+               style="-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: #2C3E50;"/>
+        
+        <HBox spacing="10" alignment="CENTER_RIGHT">
+            <Button text="Add Product" styleClass="button-success" onAction="#showAddProduct"/>
+            <Button text="Refresh" styleClass="button-secondary" onAction="#refreshProducts"/>
+        </HBox>
+    </HBox>
+
+    <!-- Search and Filter Section -->
+    <VBox spacing="15" styleClass="search-section">
+        <Label text="Search Products" style="-fx-font-size: 16px; -fx-font-weight: bold;"/>
+        
+        <HBox spacing="10">
+            <TextField fx:id="searchField" promptText="Search by name..." styleClass="search-field" prefWidth="300"/>
+            <ComboBox fx:id="typeFilter" promptText="All Types" styleClass="filter-combo" prefWidth="150"/>
+            <ComboBox fx:id="priceFilter" promptText="All Prices" styleClass="filter-combo" prefWidth="150"/>
+            <Button text="Search" styleClass="button-primary" onAction="#searchProducts"/>
+            <Button text="Clear" styleClass="button-secondary" onAction="#clearFilters"/>
+        </HBox>
+    </VBox>
+
+    <!-- Results Count -->
+    <Label fx:id="resultsLabel" text="Loading products..." 
+           style="-fx-font-size: 14px; -fx-text-fill: #7F8C8D;"/>
+
+    <!-- Products Grid View -->
+    <ScrollPane prefHeight="500" prefWidth="1150" fitToWidth="true" hbarPolicy="NEVER" vbarPolicy="AS_NEEDED">
+        <GridPane fx:id="productsGrid" hgap="15" vgap="15" styleClass="products-grid">
+        </GridPane>
+    </ScrollPane>
+
+    <!-- Status Message -->
+    <Label fx:id="statusLabel" text="" 
+           style="-fx-font-size: 12px; -fx-text-fill: #7F8C8D;"/>
+
+</VBox>

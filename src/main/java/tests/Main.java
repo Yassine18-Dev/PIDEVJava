@@ -31,7 +31,7 @@ public class Main {
                 default:
                     System.out.println("Option invalide. Veuillez réessayer.");
             }
-        }
+        }   
         scanner.close();
     }
     

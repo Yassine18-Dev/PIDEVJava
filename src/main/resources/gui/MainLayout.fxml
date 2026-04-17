@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.image.*?>
+
+<BorderPane fx:controller="controllers.MainController"
+            xmlns:fx="http://javafx.com/fxml"
+            prefWidth="1200" prefHeight="700"
+            stylesheets="@../styles.css">
+
+    <!-- TOP BAR -->
+    <top>
+        <HBox styleClass="top-bar" alignment="CENTER_LEFT">
+            <Label text="Esports Shop Dashboard" styleClass="top-bar-title"/>
+            <Region HBox.hgrow="ALWAYS"/>
+            <Label fx:id="statusLabel" text="Ready" style="-fx-text-fill: white; -fx-font-size: 12px;"/>
+        </HBox>
+    </top>
+
+    <!-- SIDEBAR -->
+    <left>
+        <VBox styleClass="sidebar" prefWidth="200">
+            <VBox alignment="TOP_LEFT" spacing="10" styleClass="menu-container">
+                <Button text="Dashboard" styleClass="menu-button" onAction="#showDashboard"/>
+                <Button text="Skins" styleClass="menu-button" onAction="#showSkins"/>
+                <Button text="Merch" styleClass="menu-button" onAction="#showMerch"/>
+                <Button text="All Products" styleClass="menu-button" onAction="#showAllProducts"/>
+                <Button text="Add Product" styleClass="menu-button menu-button-primary" onAction="#showAddProduct"/>
+                <Button text="Product Management" styleClass="menu-button menu-button-success" onAction="#showProductManagement"/>
+            </VBox>
+            <Separator style="-fx-background-color: #34495e;"/>
+            <Region VBox.vgrow="ALWAYS"/>
+            <Label text="Version 1.0" style="-fx-text-fill: #7F8C8D; -fx-font-size: 10px;"/>
+        </VBox>
+    </left>
+
+    <!-- CONTENT AREA -->
+    <center>
+        <AnchorPane fx:id="contentArea" styleClass="content-area">
+            <!-- Default Dashboard View -->
+            <VBox alignment="CENTER" spacing="20" AnchorPane.topAnchor="50.0" AnchorPane.leftAnchor="50.0" AnchorPane.rightAnchor="50.0" AnchorPane.bottomAnchor="50.0">
+                <Label text="Dashboard" style="-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: #2C3E50;"/>
+                
+                <HBox spacing="30" alignment="CENTER">
+                    <!-- Total Products Card -->
+                    <VBox styleClass="product-card" alignment="CENTER" spacing="10" prefWidth="200">
+                        <Label text="Total Products" style="-fx-font-size: 14px; -fx-text-fill: #7F8C8D;"/>
+                        <Label fx:id="totalProductsLabel" text="0" styleClass="product-price"/>
+                    </VBox>
+                    
+                    <!-- Skins Card -->
+                    <VBox styleClass="product-card" alignment="CENTER" spacing="10" prefWidth="200">
+                        <Label text="Skins" style="-fx-font-size: 14px; -fx-text-fill: #7F8C8D;"/>
+                        <Label fx:id="totalSkinsLabel" text="0" styleClass="product-price"/>
+                    </VBox>
+                    
+                    <!-- Merch Card -->
+                    <VBox styleClass="product-card" alignment="CENTER" spacing="10" prefWidth="200">
+                        <Label text="Merch" style="-fx-font-size: 14px; -fx-text-fill: #7F8C8D;"/>
+                        <Label fx:id="totalMerchLabel" text="0" styleClass="product-price"/>
+                    </VBox>
+                </HBox>
+                
+                <Button text="View All Products" styleClass="button-primary" onAction="#showAllProducts"/>
+            </VBox>
+        </AnchorPane>
+    </center>
+
+</BorderPane>

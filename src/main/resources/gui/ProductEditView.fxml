@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.control.cell.*?>
+<?import javafx.scene.image.*?>
+<?import javafx.scene.text.*?>
+<?import javafx.collections.*?>
+<?import javafx.geometry.Insets?>
+
+<VBox fx:controller="controllers.ProductEditController"
+      xmlns:fx="http://javafx.com/fxml"
+      spacing="25" styleClass="content-area"
+      prefWidth="1000" prefHeight="800"
+      stylesheets="@../styles.css">
+
+    <!-- Header -->
+    <HBox alignment="CENTER_LEFT" spacing="20" styleClass="form-header">
+        <Button text="← Back" styleClass="button-secondary" onAction="#cancelEdit"/>
+        <Region HBox.hgrow="ALWAYS"/>
+        <Label fx:id="titleLabel" text="Edit Product" 
+               style="-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: #2C3E50;"/>
+        
+        <HBox spacing="10" alignment="CENTER_RIGHT">
+            <Button text="Save" styleClass="button-success" prefWidth="100" onAction="#saveProduct"/>
+            <Button text="Delete" styleClass="button-danger" prefWidth="100" onAction="#deleteProduct"/>
+        </HBox>
+    </HBox>
+
+    <!-- Content -->
+    <ScrollPane prefHeight="550" prefWidth="950" fitToWidth="true" hbarPolicy="NEVER" vbarPolicy="AS_NEEDED">
+        <VBox spacing="30" alignment="CENTER" styleClass="form-container">
+            
+            <!-- Product Image Section -->
+            <VBox spacing="15" alignment="CENTER" styleClass="image-section">
+                <Label text="Product Image" style="-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: #2C3E50;"/>
+                
+                <ImageView fx:id="productImageView" fitWidth="200" fitHeight="200" preserveRatio="true" 
+                           styleClass="product-image-preview"/>
+                
+                <HBox spacing="15" alignment="CENTER">
+                    <Button text="Choose File" styleClass="button-secondary" prefWidth="120" onAction="#chooseImageFile"/>
+                    <Button text="Change Image" styleClass="button-primary" prefWidth="120" onAction="#changeImage"/>
+                </HBox>
+            </VBox>
+            
+            <!-- Product Information Section -->
+            <VBox spacing="20" styleClass="form-section">
+                <Label text="Product Information" style="-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #2C3E50;"/>
+                
+                <GridPane hgap="15" vgap="15" styleClass="form-grid">
+                    <!-- Product Name -->
+                    <Label text="Product Name:" styleClass="form-label" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
+                    <TextField fx:id="nameField" promptText="Enter product name" styleClass="form-field" 
+                               GridPane.rowIndex="0" GridPane.columnIndex="1"/>
+                    
+                    <!-- Price -->
+                    <Label text="Price (TND):" styleClass="form-label" GridPane.rowIndex="1" GridPane.columnIndex="0"/>
+                    <TextField fx:id="priceField" promptText="0.00" styleClass="form-field" 
+                               GridPane.rowIndex="1" GridPane.columnIndex="1"/>
+                    
+                    <!-- Stock -->
+                    <Label text="Stock Quantity:" styleClass="form-label" GridPane.rowIndex="2" GridPane.columnIndex="0"/>
+                    <TextField fx:id="stockField" promptText="0" styleClass="form-field" 
+                               GridPane.rowIndex="2" GridPane.columnIndex="1"/>
+                </GridPane>
+            </VBox>
+            
+            <!-- Product Description Section -->
+            <VBox spacing="15" styleClass="form-section">
+                <Label text="Product Description" style="-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #2C3E50;"/>
+                <TextArea fx:id="descriptionField" promptText="Enter product description" 
+                          wrapText="true" prefRowCount="4" prefColumnCount="40" 
+                          styleClass="form-textarea"/>
+            </VBox>
+            
+            <!-- Product Type Section -->
+            <VBox spacing="15" styleClass="form-section">
+                <Label text="Product Type" style="-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #2C3E50;"/>
+                
+                <HBox spacing="20" alignment="CENTER_LEFT" styleClass="radio-group">
+                    <RadioButton fx:id="skinRadioButton" text="Skin" styleClass="form-radio"/>
+                    <RadioButton fx:id="merchRadioButton" text="Merch" styleClass="form-radio"/>
+                </HBox>
+            </VBox>
+            
+            <!-- Sizes Section (for Merch only) -->
+            <VBox fx:id="sizesSection" spacing="15" styleClass="form-section" visible="false" managed="false">
+                <Label text="Available Sizes" style="-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #2C3E50;"/>
+                
+                <HBox spacing="15" alignment="CENTER_LEFT" styleClass="checkbox-group">
+                    <CheckBox fx:id="sizeSCheckBox" text="S" styleClass="form-checkbox"/>
+                    <CheckBox fx:id="sizeMCheckBox" text="M" styleClass="form-checkbox"/>
+                    <CheckBox fx:id="sizeLCheckBox" text="L" styleClass="form-checkbox"/>
+                    <CheckBox fx:id="sizeXLCheckBox" text="XL" styleClass="form-checkbox"/>
+                </HBox>
+            </VBox>
+            
+        </VBox>
+    </ScrollPane>
+
+    <!-- Status Message -->
+    <HBox alignment="CENTER_LEFT" spacing="10">
+        <Label fx:id="statusLabel" text="" styleClass="status-message"/>
+    </HBox>
+
+</VBox>

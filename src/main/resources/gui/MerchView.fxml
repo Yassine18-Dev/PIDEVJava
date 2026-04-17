@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.image.*?>
+
+<VBox fx:controller="controllers.MerchController"
+      xmlns:fx="http://javafx.com/fxml"
+      spacing="20" styleClass="content-area"
+      prefWidth="900" prefHeight="700"
+      stylesheets="@../styles.css">
+
+    <!-- Header -->
+    <HBox alignment="CENTER_LEFT" spacing="20">
+        <Label text="Merch" 
+               style="-fx-font-size: 28px; -fx-font-weight: bold; -fx-text-fill: #2C3E50;"/>
+        <Region HBox.hgrow="ALWAYS"/>
+        <Button text="Add Merch" styleClass="button-success" onAction="#showAddProduct"/>
+    </HBox>
+
+    <!-- Search and Filters -->
+    <HBox spacing="15" alignment="CENTER_LEFT">
+        <TextField fx:id="searchField" prefWidth="300" promptText="Search merch..." styleClass="search-box"/>
+        <ComboBox fx:id="priceFilterComboBox" prefWidth="150" promptText="Price Range" styleClass="filter-combo"/>
+        <ComboBox fx:id="sizeFilterComboBox" prefWidth="120" promptText="Size" styleClass="filter-combo"/>
+        <Button text="Search" styleClass="button-primary" onAction="#searchMerch"/>
+        <Button text="Clear" styleClass="button-secondary" onAction="#clearFilters"/>
+    </HBox>
+
+    <!-- Results Count -->
+    <Label fx:id="resultsLabel" text="Loading merch..." 
+           style="-fx-font-size: 14px; -fx-text-fill: #7F8C8D;"/>
+
+    <!-- Products Grid -->
+    <ScrollPane prefHeight="500" prefWidth="900" fitToWidth="true" hbarPolicy="NEVER" vbarPolicy="ALWAYS">
+        <FlowPane fx:id="merchFlowPane" hgap="20" vgap="20" prefWidth="860"/>
+    </ScrollPane>
+
+</VBox>
