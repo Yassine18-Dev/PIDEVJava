@@ -98,6 +98,14 @@ public class MainController {
         loadView("/gui/ProductManagementView.fxml", "Product management view loaded");
     }
     
+    /**
+     * Affiche la vue du panier
+     */
+    @FXML
+    public void showCarte() {
+        NavigationController.showCarte();
+    }
+    
     // ==================== MÉTHODES UTILITAIRES ====================
     
     /**

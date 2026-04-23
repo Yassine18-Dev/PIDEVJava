@@ -12,6 +12,7 @@
       xmlns:fx="http://javafx.com/fxml"
       spacing="25" styleClass="content-area"
       prefWidth="1000" prefHeight="800"
+      style="-fx-background-color: #0F172A;"
       stylesheets="@../styles.css">
 
     <!-- Header -->
@@ -19,7 +20,7 @@
         <Button text="← Back" styleClass="button-secondary" onAction="#cancelEdit"/>
         <Region HBox.hgrow="ALWAYS"/>
         <Label fx:id="titleLabel" text="Edit Product" 
-               style="-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: #2C3E50;"/>
+               style="-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: #FFFFFF;"/>
         
         <HBox spacing="10" alignment="CENTER_RIGHT">
             <Button text="Save" styleClass="button-success" prefWidth="100" onAction="#saveProduct"/>
@@ -33,7 +34,7 @@
             
             <!-- Product Image Section -->
             <VBox spacing="15" alignment="CENTER" styleClass="image-section">
-                <Label text="Product Image" style="-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: #2C3E50;"/>
+                <Label text="Product Image" style="-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: #FFFFFF;"/>
                 
                 <ImageView fx:id="productImageView" fitWidth="200" fitHeight="200" preserveRatio="true" 
                            styleClass="product-image-preview"/>
@@ -46,7 +47,7 @@
             
             <!-- Product Information Section -->
             <VBox spacing="20" styleClass="form-section">
-                <Label text="Product Information" style="-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #2C3E50;"/>
+                <Label text="Product Information" style="-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #FFFFFF;"/>
                 
                 <GridPane hgap="15" vgap="15" styleClass="form-grid">
                     <!-- Product Name -->
@@ -68,7 +69,7 @@
             
             <!-- Product Description Section -->
             <VBox spacing="15" styleClass="form-section">
-                <Label text="Product Description" style="-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #2C3E50;"/>
+                <Label text="Product Description" style="-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #FFFFFF;"/>
                 <TextArea fx:id="descriptionField" promptText="Enter product description" 
                           wrapText="true" prefRowCount="4" prefColumnCount="40" 
                           styleClass="form-textarea"/>
@@ -76,7 +77,7 @@
             
             <!-- Product Type Section -->
             <VBox spacing="15" styleClass="form-section">
-                <Label text="Product Type" style="-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #2C3E50;"/>
+                <Label text="Product Type" style="-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #FFFFFF;"/>
                 
                 <HBox spacing="20" alignment="CENTER_LEFT" styleClass="radio-group">
                     <RadioButton fx:id="skinRadioButton" text="Skin" styleClass="form-radio"/>
@@ -86,7 +87,7 @@
             
             <!-- Sizes Section (for Merch only) -->
             <VBox fx:id="sizesSection" spacing="15" styleClass="form-section" visible="false" managed="false">
-                <Label text="Available Sizes" style="-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #2C3E50;"/>
+                <Label text="Available Sizes" style="-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #FFFFFF;"/>
                 
                 <HBox spacing="15" alignment="CENTER_LEFT" styleClass="checkbox-group">
                     <CheckBox fx:id="sizeSCheckBox" text="S" styleClass="form-checkbox"/>

@@ -140,6 +140,11 @@ public class ProductManagementController {
     public void showAddProduct() {
         NavigationController.showAddProduct();
     }
+
+    @FXML
+    public void showCarte() {
+        NavigationController.showCarte();
+    }
     
     /**
      * Modifie un produit
@@ -191,13 +196,13 @@ public class ProductManagementController {
     private VBox createProductCard(Product product) {
         VBox card = new VBox(15);
         card.getStyleClass().add("product-card");
-        card.setPrefWidth(200);
-        card.setPrefHeight(150);
+        card.setPrefWidth(280);
+        card.setPrefHeight(200);
         
         // Image du produit
         ImageView imageView = new ImageView();
-        imageView.setFitWidth(80);
-        imageView.setFitHeight(80);
+        imageView.setFitWidth(120);
+        imageView.setFitHeight(120);
         imageView.setPreserveRatio(true);
         
         // Charger l'image
@@ -275,19 +280,19 @@ public class ProductManagementController {
         
         // Boutons d'action
         HBox buttonBox = new HBox(8);
-        Button editButton = new Button("Edit");
+        Button editButton = new Button("Modifier");
         editButton.getStyleClass().add("button-secondary");
-        editButton.setPrefWidth(70);
+        editButton.setPrefWidth(80);
         editButton.setOnAction(e -> editProduct(product));
-        
-        Button deleteButton = new Button("Delete");
+
+        Button deleteButton = new Button("Supprimer");
         deleteButton.getStyleClass().add("button-danger");
-        deleteButton.setPrefWidth(70);
+        deleteButton.setPrefWidth(80);
         deleteButton.setOnAction(e -> deleteProduct(product));
-        
-        Button cartButton = new Button("Add to Cart");
+
+        Button cartButton = new Button("Ajouter");
         cartButton.getStyleClass().add("button-primary");
-        cartButton.setPrefWidth(100);
+        cartButton.setPrefWidth(80);
         cartButton.setOnAction(e -> addToCart(product));
         
         buttonBox.getChildren().addAll(editButton, deleteButton, cartButton);
@@ -305,7 +310,7 @@ public class ProductManagementController {
             
             int row = 0;
             int col = 0;
-            int maxCols = 4;
+            int maxCols = 3;
             
             for (Product product : products) {
                 VBox productCard = createProductCard(product);

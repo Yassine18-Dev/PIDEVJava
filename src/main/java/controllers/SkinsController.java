@@ -10,6 +10,7 @@ import javafx.scene.image.ImageView;
 import javafx.scene.image.Image;
 import entities.*;
 import services.ProductService;
+import services.CarteService;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
@@ -21,6 +22,7 @@ public class SkinsController {
     
     // ==================== SERVICES ====================
     private final ProductService productService = new ProductService();
+    private final CarteService carteService = CarteService.getInstance();
     
     // ==================== COMPOSANTS FXML ====================
     @FXML
@@ -86,6 +88,11 @@ public class SkinsController {
     @FXML
     public void showAddProduct() {
         NavigationController.showAddProduct();
+    }
+
+    @FXML
+    public void showCarte() {
+        NavigationController.showCarte();
     }
     
     // ==================== MÉTHODES UTILITAIRES ====================
@@ -306,41 +313,33 @@ public class SkinsController {
      * Ajoute au panier (réduit le stock)
      */
     private void addToCart(Product product) {
-        if (product.getStock() == 0) {
-            Alert alert = new Alert(Alert.AlertType.WARNING);
-            alert.setTitle("Out of Stock");
-            alert.setHeaderText("Cannot Add to Cart");
-            alert.setContentText(product.getName() + " is out of stock.");
-            alert.show();
-            return;
-        }
-        
-        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
-        alert.setTitle("Add to Cart");
-        alert.setHeaderText("Add " + product.getName() + " to cart?");
-        alert.setContentText("This will reduce stock by 1 unit.");
-        
-        if (alert.showAndWait().orElse(ButtonType.CANCEL) == ButtonType.OK) {
-            try {
-                productService.reduceStock(product.getId(), 1);
-                loadSkins(); // Recharger la liste
-                
-                // Message de succès
-                Alert successAlert = new Alert(Alert.AlertType.INFORMATION);
-                successAlert.setTitle("Success");
-                successAlert.setHeaderText("Added to Cart");
-                successAlert.setContentText(product.getName() + " has been added to cart.");
-                successAlert.show();
-                
-            } catch (Exception e) {
-                System.err.println("Error adding to cart: " + e.getMessage());
-                
-                Alert errorAlert = new Alert(Alert.AlertType.ERROR);
-                errorAlert.setTitle("Error");
-                errorAlert.setHeaderText("Add to Cart Failed");
-                errorAlert.setContentText("Failed to add product to cart: " + e.getMessage());
-                errorAlert.show();
+        try {
+            // Recharger le produit depuis la base de données pour avoir le stock actuel
+            Product currentProduct = productService.getById(product.getId());
+            if (currentProduct == null || currentProduct.getStock() == 0) {
+                Alert alert = new Alert(Alert.AlertType.WARNING);
+                alert.setTitle("Out of Stock");
+                alert.setHeaderText("Cannot Add to Cart");
+                alert.setContentText(product.getName() + " is out of stock.");
+                alert.show();
+                return;
             }
+
+            productService.reduceStock(product.getId(), 1);
+            carteService.add(product, 1);
+            loadSkins();
+
+            Alert successAlert = new Alert(Alert.AlertType.INFORMATION);
+            successAlert.setTitle("Success");
+            successAlert.setHeaderText("Added to Cart");
+            successAlert.setContentText(product.getName() + " has been added to cart.");
+            successAlert.show();
+        } catch (Exception e) {
+            Alert errorAlert = new Alert(Alert.AlertType.ERROR);
+            errorAlert.setTitle("Error");
+            errorAlert.setHeaderText("Add to Cart Failed");
+            errorAlert.setContentText("Failed to add product to cart: " + e.getMessage());
+            errorAlert.show();
         }
     }
     

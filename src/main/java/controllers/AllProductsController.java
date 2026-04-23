@@ -9,6 +9,7 @@ import javafx.scene.image.ImageView;
 import javafx.scene.image.Image;
 import entities.*;
 import services.ProductService;
+import services.CarteService;
 import java.util.List;
 import java.io.File;
 
@@ -19,6 +20,7 @@ public class AllProductsController {
     
     // ==================== SERVICES ====================
     private final ProductService productService = new ProductService();
+    private final CarteService carteService = CarteService.getInstance();
     
     // ==================== COMPOSANTS FXML ====================
     @FXML
@@ -74,6 +76,11 @@ public class AllProductsController {
     @FXML
     public void showAddProduct() {
         NavigationController.showAddProduct();
+    }
+
+    @FXML
+    public void showCarte() {
+        NavigationController.showCarte();
     }
     
     // ==================== MÉTHODES UTILITAIRES ====================
@@ -144,8 +151,52 @@ public class AllProductsController {
         VBox card = new VBox(15);
         card.getStyleClass().add("product-card");
         card.setPrefWidth(250);
-        card.setPrefHeight(220);
-        
+        card.setPrefHeight(280);
+
+        // Image du produit
+        ImageView imageView = new ImageView();
+        imageView.setFitWidth(120);
+        imageView.setFitHeight(120);
+        imageView.setPreserveRatio(true);
+
+        // Charger l'image
+        String imagePath = product.getImage();
+        if (imagePath != null && !imagePath.isEmpty()) {
+            try {
+                if (imagePath.startsWith("http")) {
+                    Image image = new Image(imagePath, true);
+                    imageView.setImage(image);
+                } else {
+                    File imageFile = new File(imagePath);
+                    if (imageFile.exists()) {
+                        Image image = new Image(imageFile.toURI().toString(), true);
+                        imageView.setImage(image);
+                    } else {
+                        try {
+                            Image defaultImage = new Image("/uploads/default_product.png", true);
+                            imageView.setImage(defaultImage);
+                        } catch (Exception e) {
+                            imageView.setImage(null);
+                        }
+                    }
+                }
+            } catch (Exception e) {
+                try {
+                    Image defaultImage = new Image("/uploads/default_product.png", true);
+                    imageView.setImage(defaultImage);
+                } catch (Exception ex) {
+                    imageView.setImage(null);
+                }
+            }
+        } else {
+            try {
+                Image defaultImage = new Image("/uploads/default_product.png", true);
+                imageView.setImage(defaultImage);
+            } catch (Exception e) {
+                imageView.setImage(null);
+            }
+        }
+
         Label nameLabel = new Label(product.getName());
         nameLabel.getStyleClass().add("product-title");
         nameLabel.setWrapText(true);
@@ -189,8 +240,8 @@ public class AllProductsController {
         cartButton.setOnAction(e -> addToCart(product));
         
         buttonBox.getChildren().add(cartButton);
-        
-        card.getChildren().addAll(nameLabel, descLabel, priceLabel, typeLabel, stockLabel, buttonBox);
+
+        card.getChildren().addAll(imageView, nameLabel, descLabel, priceLabel, typeLabel, stockLabel, buttonBox);
         return card;
     }
     
@@ -228,40 +279,82 @@ public class AllProductsController {
     }
     
     private void addToCart(Product product) {
-        if (product.getStock() == 0) {
-            Alert alert = new Alert(Alert.AlertType.WARNING);
-            alert.setTitle("Out of Stock");
-            alert.setHeaderText("Cannot Add to Cart");
-            alert.setContentText(product.getName() + " is out of stock.");
-            alert.show();
-            return;
-        }
-        
-        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
-        alert.setTitle("Add to Cart");
-        alert.setHeaderText("Add " + product.getName() + " to cart?");
-        alert.setContentText("This will reduce stock by 1 unit.");
-        
-        if (alert.showAndWait().orElse(ButtonType.CANCEL) == ButtonType.OK) {
-            try {
+        try {
+            // Recharger le produit depuis la base de données pour avoir le stock actuel
+            Product currentProduct = productService.getById(product.getId());
+            if (currentProduct == null || currentProduct.getStock() == 0) {
+                Alert alert = new Alert(Alert.AlertType.WARNING);
+                alert.setTitle("Out of Stock");
+                alert.setHeaderText("Cannot Add to Cart");
+                alert.setContentText(product.getName() + " is out of stock.");
+                alert.show();
+                return;
+            }
+
+            // Si c'est un merch, demander la taille
+            if ("merch".equalsIgnoreCase(currentProduct.getType())) {
+                Merch merch = (Merch) currentProduct;
+                String sizes = merch.getSizes();
+
+                ChoiceDialog<String> sizeDialog = new ChoiceDialog<>();
+                sizeDialog.setTitle("Select Size");
+                sizeDialog.setHeaderText("Select a size for " + merch.getName());
+                sizeDialog.setContentText("Available sizes:");
+
+                if (sizes != null && !sizes.isEmpty()) {
+                    String[] sizeArray = sizes.split(",");
+                    for (String size : sizeArray) {
+                        sizeDialog.getItems().add(size.trim());
+                    }
+                    if (!sizeDialog.getItems().isEmpty()) {
+                        sizeDialog.setSelectedItem(sizeDialog.getItems().get(0));
+                    }
+                } else {
+                    Alert alert = new Alert(Alert.AlertType.WARNING);
+                    alert.setTitle("No Sizes Available");
+                    alert.setHeaderText("Cannot Add to Cart");
+                    alert.setContentText("No sizes available for this product.");
+                    alert.show();
+                    return;
+                }
+
+                sizeDialog.showAndWait().ifPresent(selectedSize -> {
+                    try {
+                        productService.reduceStock(product.getId(), 1);
+                        carteService.add(product, 1, selectedSize);
+                        loadProducts();
+
+                        Alert successAlert = new Alert(Alert.AlertType.INFORMATION);
+                        successAlert.setTitle("Success");
+                        successAlert.setHeaderText("Added to Cart");
+                        successAlert.setContentText(merch.getName() + " (Size: " + selectedSize + ") has been added to cart.");
+                        successAlert.show();
+                    } catch (Exception e) {
+                        Alert errorAlert = new Alert(Alert.AlertType.ERROR);
+                        errorAlert.setTitle("Error");
+                        errorAlert.setHeaderText("Add to Cart Failed");
+                        errorAlert.setContentText("Failed to add product to cart: " + e.getMessage());
+                        errorAlert.show();
+                    }
+                });
+            } else {
+                // Pour les skins et autres produits sans taille
                 productService.reduceStock(product.getId(), 1);
+                carteService.add(product, 1);
                 loadProducts();
-                
+
                 Alert successAlert = new Alert(Alert.AlertType.INFORMATION);
                 successAlert.setTitle("Success");
                 successAlert.setHeaderText("Added to Cart");
                 successAlert.setContentText(product.getName() + " has been added to cart.");
                 successAlert.show();
-                
-            } catch (Exception e) {
-                System.err.println("Error adding to cart: " + e.getMessage());
-                
-                Alert errorAlert = new Alert(Alert.AlertType.ERROR);
-                errorAlert.setTitle("Error");
-                errorAlert.setHeaderText("Add to Cart Failed");
-                errorAlert.setContentText("Failed to add product to cart: " + e.getMessage());
-                errorAlert.show();
             }
+        } catch (Exception e) {
+            Alert errorAlert = new Alert(Alert.AlertType.ERROR);
+            errorAlert.setTitle("Error");
+            errorAlert.setHeaderText("Add to Cart Failed");
+            errorAlert.setContentText("Failed to add product to cart: " + e.getMessage());
+            errorAlert.show();
         }
     }
 }

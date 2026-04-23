@@ -8,13 +8,15 @@
       xmlns:fx="http://javafx.com/fxml"
       spacing="20" styleClass="content-area"
       prefWidth="900" prefHeight="700"
+      style="-fx-background-color: #0F172A;"
       stylesheets="@../styles.css">
 
     <!-- Header -->
     <HBox alignment="CENTER_LEFT" spacing="20">
-        <Label text="Merch" 
-               style="-fx-font-size: 28px; -fx-font-weight: bold; -fx-text-fill: #2C3E50;"/>
+        <Label text="Merch"
+               style="-fx-font-size: 28px; -fx-font-weight: bold; -fx-text-fill: #FFFFFF;"/>
         <Region HBox.hgrow="ALWAYS"/>
+        <Button text="🛒 Cart" styleClass="button-primary" onAction="#showCarte"/>
         <Button text="Add Merch" styleClass="button-success" onAction="#showAddProduct"/>
     </HBox>
 
@@ -29,7 +31,7 @@
 
     <!-- Results Count -->
     <Label fx:id="resultsLabel" text="Loading merch..." 
-           style="-fx-font-size: 14px; -fx-text-fill: #7F8C8D;"/>
+           style="-fx-font-size: 14px; -fx-text-fill: #9CA3AF;"/>
 
     <!-- Products Grid -->
     <ScrollPane prefHeight="500" prefWidth="900" fitToWidth="true" hbarPolicy="NEVER" vbarPolicy="ALWAYS">

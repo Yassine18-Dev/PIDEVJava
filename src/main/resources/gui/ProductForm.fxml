@@ -10,11 +10,11 @@
            fitToWidth="true" fitToHeight="true" hbarPolicy="NEVER" vbarPolicy="AS_NEEDED">
     
     <VBox spacing="20" alignment="CENTER" styleClass="main-container"
-          prefWidth="800" prefHeight="700" stylesheets="@../styles.css">
+          prefWidth="800" prefHeight="700" style="-fx-background-color: #0F172A;" stylesheets="@../styles.css">
 
     <!-- Header -->
     <Label fx:id="formTitleLabel" text="Add New Product" 
-           style="-fx-font-size: 28px; -fx-font-weight: bold; -fx-text-fill: #2C3E50;"/>
+           style="-fx-font-size: 28px; -fx-font-weight: bold; -fx-text-fill: #FFFFFF;"/>
 
     <!-- Form Container -->
     <VBox spacing="20" prefWidth="500" alignment="CENTER">
@@ -27,7 +27,7 @@
                 <RadioButton fx:id="merchRadioButton" text="Merch"/>
             </HBox>
             <Label text="Choisissez le type de produit (Skin ou Merch)" 
-                   style="-fx-font-size: 11px; -fx-text-fill: #7F8C8D; -fx-font-style: italic;"/>
+                   style="-fx-font-size: 11px; -fx-text-fill: #9CA3AF; -fx-font-style: italic;"/>
         </VBox>
 
         <!-- Name -->
@@ -35,7 +35,7 @@
             <Label text="Name" styleClass="form-label"/>
             <TextField fx:id="nameField" promptText="Enter product name" styleClass="form-field" prefWidth="400"/>
             <Label text="Minimum 3 caractères requis" 
-                   style="-fx-font-size: 11px; -fx-text-fill: #7F8C8D; -fx-font-style: italic;"/>
+                   style="-fx-font-size: 11px; -fx-text-fill: #9CA3AF; -fx-font-style: italic;"/>
         </VBox>
 
         <!-- Price -->
@@ -43,7 +43,7 @@
             <Label text="Price (TND)" styleClass="form-label"/>
             <TextField fx:id="priceField" promptText="0.00" styleClass="form-field" prefWidth="400"/>
             <Label text="Prix entre 0 et 10000 TND" 
-                   style="-fx-font-size: 11px; -fx-text-fill: #7F8C8D; -fx-font-style: italic;"/>
+                   style="-fx-font-size: 11px; -fx-text-fill: #9CA3AF; -fx-font-style: italic;"/>
         </VBox>
 
         <!-- Description -->
@@ -52,7 +52,7 @@
             <TextArea fx:id="descriptionField" promptText="Enter product description" 
                      styleClass="form-field" prefWidth="400" prefHeight="80" wrapText="true"/>
             <Label text="Optionnel - Maximum 500 caractères" 
-                   style="-fx-font-size: 11px; -fx-text-fill: #7F8C8D; -fx-font-style: italic;"/>
+                   style="-fx-font-size: 11px; -fx-text-fill: #9CA3AF; -fx-font-style: italic;"/>
         </VBox>
 
         <!-- Image -->
@@ -64,7 +64,7 @@
                 <Button text="Browse" styleClass="button-secondary" onAction="#browseImage"/>
             </HBox>
             <Label text="Formats acceptés: jpg, jpeg, png, gif, bmp" 
-                   style="-fx-font-size: 11px; -fx-text-fill: #7F8C8D; -fx-font-style: italic;"/>
+                   style="-fx-font-size: 11px; -fx-text-fill: #9CA3AF; -fx-font-style: italic;"/>
         </VBox>
 
         <!-- Stock -->
@@ -72,7 +72,7 @@
             <Label text="Stock Quantity" styleClass="form-label"/>
             <TextField fx:id="stockField" promptText="0" styleClass="form-field" prefWidth="400"/>
             <Label text="Quantité entre 0 et 10000 unités" 
-                   style="-fx-font-size: 11px; -fx-text-fill: #7F8C8D; -fx-font-style: italic;"/>
+                   style="-fx-font-size: 11px; -fx-text-fill: #9CA3AF; -fx-font-style: italic;"/>
         </VBox>
 
         <!-- Sizes (for Merch only) -->
@@ -85,13 +85,13 @@
                 <CheckBox fx:id="sizeXLCheckBox" text="XL"/>
             </HBox>
             <Label text="Au moins une taille doit être sélectionnée pour les produits Merch" 
-                   style="-fx-font-size: 11px; -fx-text-fill: #7F8C8D; -fx-font-style: italic;"/>
+                   style="-fx-font-size: 11px; -fx-text-fill: #9CA3AF; -fx-font-style: italic;"/>
         </VBox>
 
         <!-- Preview -->
         <VBox fx:id="previewVBox" spacing="10" visible="true" managed="true">
             <Separator/>
-            <Label text="Preview" style="-fx-font-weight: bold; -fx-text-fill: #2C3E50;"/>
+            <Label text="Preview" style="-fx-font-weight: bold; -fx-text-fill: #FFFFFF;"/>
             <VBox styleClass="product-card" alignment="CENTER" spacing="10" prefWidth="400">
                 <ImageView fx:id="previewImageView" fitWidth="100" fitHeight="100" preserveRatio="true"/>
                 <Label fx:id="previewNameLabel" text="Product Name" styleClass="product-title"/>
@@ -111,7 +111,7 @@
 
     <!-- Status Message -->
     <Label fx:id="statusLabel" text="" 
-           style="-fx-font-size: 12px; -fx-text-fill: #7F8C8D;"/>
+           style="-fx-font-size: 12px; -fx-text-fill: #9CA3AF;"/>
 
 </VBox>
     

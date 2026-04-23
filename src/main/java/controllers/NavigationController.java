@@ -92,4 +92,13 @@ public class NavigationController {
             mainController.loadView("/gui/ProductManagementView.fxml", "Product management view loaded");
         }
     }
+    
+    /**
+     * Affiche la vue du panier
+     */
+    public static void showCarte() {
+        if (mainController != null) {
+            mainController.loadView("/gui/CarteView.fxml", "Shopping cart view loaded");
+        }
+    }
 }

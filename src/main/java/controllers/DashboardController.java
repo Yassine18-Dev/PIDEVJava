@@ -75,6 +75,11 @@ public class DashboardController {
     public void showAddProduct() {
         NavigationController.showAddProduct();
     }
+
+    @FXML
+    public void showCarte() {
+        NavigationController.showCarte();
+    }
     
     /**
      * Rafraîchit le dashboard

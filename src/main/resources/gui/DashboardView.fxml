@@ -9,11 +9,16 @@
       spacing="30" alignment="CENTER"
       styleClass="content-area"
       prefWidth="800" prefHeight="600"
+      style="-fx-background-color: #0F172A;"
       stylesheets="@../styles.css">
 
     <!-- Header -->
-    <Label text="Dashboard" 
-           style="-fx-font-size: 32px; -fx-font-weight: bold; -fx-text-fill: #2C3E50;"/>
+    <HBox alignment="CENTER_LEFT" spacing="20">
+        <Label text="Dashboard"
+               style="-fx-font-size: 32px; -fx-font-weight: bold; -fx-text-fill: #FFFFFF;"/>
+        <Region HBox.hgrow="ALWAYS"/>
+        <Button text="🛒 Cart" styleClass="button-primary" onAction="#showCarte"/>
+    </HBox>
 
     <!-- Stats Cards -->
     <HBox spacing="40" alignment="CENTER">
@@ -25,7 +30,7 @@
                     <Image url="@../images/products.png"/>
                 </image>
             </ImageView>
-            <Label text="Total Products" style="-fx-font-size: 16px; -fx-text-fill: #7F8C8D;"/>
+            <Label text="Total Products" style="-fx-font-size: 16px; -fx-text-fill: #9CA3AF;"/>
             <Label fx:id="totalProductsLabel" text="0" styleClass="product-price"/>
             <Button text="View All" styleClass="button-primary" onAction="#showAllProducts"/>
         </VBox>
@@ -37,7 +42,7 @@
                     <Image url="@../images/skins.png"/>
                 </image>
             </ImageView>
-            <Label text="Skins" style="-fx-font-size: 16px; -fx-text-fill: #7F8C8D;"/>
+            <Label text="Skins" style="-fx-font-size: 16px; -fx-text-fill: #999999;"/>
             <Label fx:id="totalSkinsLabel" text="0" styleClass="product-price"/>
             <Button text="View Skins" styleClass="button-primary" onAction="#showSkins"/>
         </VBox>
@@ -49,7 +54,7 @@
                     <Image url="@../images/merch.png"/>
                 </image>
             </ImageView>
-            <Label text="Merch" style="-fx-font-size: 16px; -fx-text-fill: #7F8C8D;"/>
+            <Label text="Merch" style="-fx-font-size: 16px; -fx-text-fill: #9CA3AF;"/>
             <Label fx:id="totalMerchLabel" text="0" styleClass="product-price"/>
             <Button text="View Merch" styleClass="button-primary" onAction="#showMerch"/>
         </VBox>
@@ -58,7 +63,7 @@
     <!-- Recent Products -->
     <VBox spacing="20" prefWidth="800">
         <Label text="Recent Products" 
-               style="-fx-font-size: 20px; -fx-font-weight: bold; -fx-text-fill: #2C3E50;"/>
+               style="-fx-font-size: 20px; -fx-font-weight: bold; -fx-text-fill: #FFFFFF;"/>
         
         <ScrollPane prefHeight="200" fitToWidth="true">
             <FlowPane fx:id="recentProductsPane" hgap="20" vgap="20" prefWidth="780"/>
