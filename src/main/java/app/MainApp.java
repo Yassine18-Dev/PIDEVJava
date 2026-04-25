@@ -1,38 +1,38 @@
 package app;
 
+import controllers.PlayerProfileController;
+import entities.Player;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
+import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
+import services.PlayerService;
+import utils.Session;
 
 public class MainApp extends Application {
 
-    private static Stage primaryStage;
-
     @Override
-    public void start(Stage stage) {
-        primaryStage = stage;
-        loadScene("/fxml/dashboard.fxml", "Arena MIND");
-    }
+    public void start(Stage stage) throws Exception {
+        PlayerService svc = new PlayerService();
+        Player player = svc.findFirst();
 
-    public static void loadScene(String fxmlPath, String title) {
-        try {
-            FXMLLoader loader = new FXMLLoader(MainApp.class.getResource(fxmlPath));
-            Scene scene = new Scene(loader.load(), 1100, 700);
-            scene.getStylesheets().add(MainApp.class.getResource("/css/style.css").toExternalForm());
-            primaryStage.setTitle(title);
-            primaryStage.setScene(scene);
-            primaryStage.show();
-        } catch (Exception e) {
-            e.printStackTrace();
+        if (player == null) {
+            System.err.println("⚠ Aucun joueur dans la BDD.");
+            return;
         }
+
+        Session.setCurrentPlayer(player);
+
+        FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/player_profile.fxml"));
+        Parent root = loader.load();
+        PlayerProfileController ctrl = loader.getController();
+        ctrl.initWithPlayer(player);
+
+        stage.setTitle("ArenaMind — " + player.getUsername());
+        stage.setScene(new Scene(root, 1280, 800));
+        stage.show();
     }
 
-    public static Stage getPrimaryStage() {
-        return primaryStage;
-    }
-
-    public static void main(String[] args) {
-        launch();
-    }
+    public static void main(String[] args) { launch(args); }
 }

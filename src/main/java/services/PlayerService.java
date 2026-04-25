@@ -1,203 +1,110 @@
 package services;
 
 import entities.Player;
-import interfaces.IPlayerService;
 import utils.Mydatabase;
 
 import java.sql.*;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
 
-public class PlayerService implements IPlayerService {
+public class PlayerService {
 
-    private final Connection connection;
+    private final Connection cnx = Mydatabase.getInstance().getCnx();
 
-    public PlayerService() {
-        connection = Mydatabase.getInstance().getConnection();
-    }
-
-    @Override
-    public void ajouter(Player player) throws SQLException {
-        String sql = "INSERT INTO player (username, email, password, game, rank, league_points, team_id) VALUES (?, ?, ?, ?, ?, ?, ?)";
-
-        PreparedStatement ps = connection.prepareStatement(sql);
-        ps.setString(1, player.getUsername());
-        ps.setString(2, player.getEmail());
-        ps.setString(3, player.getPassword());
-        ps.setString(4, player.getGame());
-        ps.setString(5, player.getRank());
-        ps.setInt(6, player.getLeaguePoints());
-
-        if (player.getTeamId() <= 0) {
-            ps.setNull(7, Types.INTEGER);
-        } else {
-            ps.setInt(7, player.getTeamId());
+    public Player getById(int id) throws SQLException {
+        try (PreparedStatement ps = cnx.prepareStatement("SELECT * FROM player WHERE id=?")) {
+            ps.setInt(1, id);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) return mapFull(rs);
         }
-
-        ps.executeUpdate();
-        System.out.println("Player ajouté avec succès.");
+        return null;
     }
 
-    @Override
-    public void modifier(Player player) throws SQLException {
-        String sql = "UPDATE player SET username = ?, email = ?, password = ?, game = ?, rank = ?, league_points = ?, team_id = ? WHERE id = ?";
-
-        PreparedStatement ps = connection.prepareStatement(sql);
-        ps.setString(1, player.getUsername());
-        ps.setString(2, player.getEmail());
-        ps.setString(3, player.getPassword());
-        ps.setString(4, player.getGame());
-        ps.setString(5, player.getRank());
-        ps.setInt(6, player.getLeaguePoints());
-
-        if (player.getTeamId() <= 0) {
-            ps.setNull(7, java.sql.Types.INTEGER);
-        } else {
-            ps.setInt(7, player.getTeamId());
+    public Player findFirst() throws SQLException {
+        try (Statement st = cnx.createStatement();
+             ResultSet rs = st.executeQuery("SELECT * FROM player ORDER BY id ASC LIMIT 1")) {
+            if (rs.next()) return mapFull(rs);
         }
-
-        ps.setInt(8, player.getId());
-        ps.executeUpdate();
+        return null;
     }
 
-    @Override
-    public void supprimer(int id) throws SQLException {
-        String sql = "DELETE FROM player WHERE id = ?";
+    public List<Player> findAll() throws SQLException {
+        List<Player> list = new ArrayList<>();
+        try (Statement st = cnx.createStatement();
+             ResultSet rs = st.executeQuery("SELECT * FROM player ORDER BY username")) {
+            while (rs.next()) list.add(mapFull(rs));
+        }
+        return list;
+    }
 
-        PreparedStatement ps = connection.prepareStatement(sql);
-        ps.setInt(1, id);
+    public List<Player> findByTeam(int teamId) throws SQLException {
+        List<Player> list = new ArrayList<>();
+        try (PreparedStatement ps = cnx.prepareStatement("SELECT * FROM player WHERE team_id=?")) {
+            ps.setInt(1, teamId);
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) list.add(mapFull(rs));
+        }
+        return list;
+    }
 
-        int rows = ps.executeUpdate();
-        if (rows > 0) {
-            System.out.println("Player supprimé avec succès.");
-        } else {
-            System.out.println("Aucun player trouvé avec cet id.");
+    public List<Player> findFreePlayers(String game) throws SQLException {
+        List<Player> list = new ArrayList<>();
+        try (PreparedStatement ps = cnx.prepareStatement(
+                "SELECT * FROM player WHERE team_id IS NULL AND game=?")) {
+            ps.setString(1, game);
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) list.add(mapFull(rs));
+        }
+        return list;
+    }
+
+    public void updateProfile(Player p) throws SQLException {
+        String sql = "UPDATE player SET username=?, email=?, avatar=?, " +
+                "vision=?, shooting=?, reflex=?, teamplay=?, communication=? WHERE id=?";
+        try (PreparedStatement ps = cnx.prepareStatement(sql)) {
+            ps.setString(1, p.getUsername());
+            ps.setString(2, p.getEmail());
+            ps.setString(3, p.getAvatar());
+            ps.setInt(4,    p.getVision());
+            ps.setInt(5,    p.getShooting());
+            ps.setInt(6,    p.getReflex());
+            ps.setInt(7,    p.getTeamplay());
+            ps.setInt(8,    p.getCommunication());
+            ps.setInt(9,    p.getId());
+            ps.executeUpdate();
         }
     }
 
-    @Override
-    public List<Player> recuperer() throws SQLException {
-        String sql = "SELECT * FROM player";
-        Statement st = connection.createStatement();
-        ResultSet rs = st.executeQuery(sql);
-
-        List<Player> players = new ArrayList<>();
-
-        while (rs.next()) {
-            Player p = new Player();
-            p.setId(rs.getInt("id"));
-            p.setUsername(rs.getString("username"));
-            p.setEmail(rs.getString("email"));
-            p.setPassword(rs.getString("password"));
-            p.setGame(rs.getString("game"));
-            p.setRank(rs.getString("rank"));
-            p.setLeaguePoints(rs.getInt("league_points"));
-
-            int teamId = rs.getInt("team_id");
-            if (rs.wasNull()) {
-                p.setTeamId(-1);
-            } else {
-                p.setTeamId(teamId);
-            }
-
-            p.setRegisteredAt(rs.getTimestamp("registered_at"));
-            players.add(p);
+    public void setTeam(int playerId, Integer teamId) throws SQLException {
+        try (PreparedStatement ps = cnx.prepareStatement("UPDATE player SET team_id=? WHERE id=?")) {
+            if (teamId == null || teamId <= 0) ps.setNull(1, Types.INTEGER);
+            else                                ps.setInt(1, teamId);
+            ps.setInt(2, playerId);
+            ps.executeUpdate();
         }
-
-        return players;
     }
 
-    @Override
-    public Optional<Player> getPlayerById(int id) throws SQLException {
-        return recuperer().stream()
-                .filter(p -> p.getId() == id)
-                .findFirst();
-    }
-
-    @Override
-    public List<Player> searchByUsername(String search) throws SQLException {
-        return recuperer().stream()
-                .filter(p -> p.getUsername() != null && p.getUsername().toLowerCase().contains(search.toLowerCase()))
-                .collect(Collectors.toList());
-    }
-
-    @Override
-    public List<Player> sortByRankDesc() throws SQLException {
-        return recuperer().stream()
-                .sorted((p1, p2) -> compareRank(p2.getRank(), p1.getRank()))
-                .collect(Collectors.toList());
-    }
-
-    @Override
-    public List<Player> filterByGame(String game) throws SQLException {
-        return recuperer().stream()
-                .filter(p -> p.getGame() != null && p.getGame().equalsIgnoreCase(game))
-                .collect(Collectors.toList());
-    }
-
-    @Override
-    public List<Player> getFreeAgents() throws SQLException {
-        return recuperer().stream()
-                .filter(p -> p.getTeamId() == -1)
-                .collect(Collectors.toList());
-    }
-
-    @Override
-    public List<Player> getTop3Players() throws SQLException {
-        return recuperer().stream()
-                .sorted((p1, p2) -> compareRank(p2.getRank(), p1.getRank()))
-                .limit(3)
-                .collect(Collectors.toList());
-    }
-
-    private int compareRank(String rank1, String rank2) {
-        List<String> rankOrder = Arrays.asList(
-                "Unranked",
-                "Iron",
-                "Bronze",
-                "Silver",
-                "Gold",
-                "Platinum",
-                "Diamond",
-                "Master",
-                "Grandmaster",
-                "Challenger",
-                "Immortal"
-        );
-
-        String normalizedRank1 = normalizeRank(rank1);
-        String normalizedRank2 = normalizeRank(rank2);
-
-        int idx1 = rankOrder.indexOf(normalizedRank1);
-        int idx2 = rankOrder.indexOf(normalizedRank2);
-
-        if (idx1 == -1) idx1 = 0;
-        if (idx2 == -1) idx2 = 0;
-
-        return Integer.compare(idx1, idx2);
-    }
-
-    private String normalizeRank(String rank) {
-        if (rank == null || rank.trim().isEmpty()) {
-            return "Unranked";
-        }
-
-        String value = rank.trim();
-
-        if (value.startsWith("Iron")) return "Iron";
-        if (value.startsWith("Bronze")) return "Bronze";
-        if (value.startsWith("Silver")) return "Silver";
-        if (value.startsWith("Gold")) return "Gold";
-        if (value.startsWith("Platinum")) return "Platinum";
-        if (value.startsWith("Diamond")) return "Diamond";
-        if (value.startsWith("Master")) return "Master";
-        if (value.startsWith("Grandmaster")) return "Grandmaster";
-        if (value.startsWith("Challenger")) return "Challenger";
-        if (value.startsWith("Immortal")) return "Immortal";
-
-        return "Unranked";
+    private Player mapFull(ResultSet rs) throws SQLException {
+        Player p = new Player();
+        p.setId(rs.getInt("id"));
+        p.setUsername(rs.getString("username"));
+        p.setEmail(rs.getString("email"));
+        p.setPassword(rs.getString("password"));
+        p.setGame(rs.getString("game"));
+        p.setRank(rs.getString("rank"));
+        p.setLeaguePoints(rs.getInt("league_points"));
+        int teamId = rs.getInt("team_id");
+        p.setTeamId(rs.wasNull() ? 0 : teamId);
+        p.setRegisteredAt(rs.getTimestamp("registered_at"));
+        p.setAvatar(rs.getString("avatar"));
+        p.setVision(rs.getInt("vision"));
+        p.setShooting(rs.getInt("shooting"));
+        p.setReflex(rs.getInt("reflex"));
+        p.setTeamplay(rs.getInt("teamplay"));
+        p.setCommunication(rs.getInt("communication"));
+        p.setWinrate(rs.getDouble("winrate"));
+        p.setKda(rs.getDouble("kda"));
+        p.setMvpCount(rs.getInt("mvp_count"));
+        return p;
     }
 }

@@ -6,31 +6,26 @@ import java.sql.SQLException;
 
 public class Mydatabase {
 
-    private final String URL = "jdbc:mysql://localhost:3306/javadb?useSSL=false&serverTimezone=UTC";
-    private final String USER = "root";
-    private final String PASSWORD = "";
+    private static final String URL  = "jdbc:mysql://localhost:3306/javadb";
+    private static final String USER = "root";
+    private static final String PASS = "";
 
-    private Connection connection;
     private static Mydatabase instance;
+    private Connection cnx;
 
     private Mydatabase() {
         try {
-            connection = DriverManager.getConnection(URL, USER, PASSWORD);
-            System.out.println("Database connected successfully.");
+            cnx = DriverManager.getConnection(URL, USER, PASS);
+            System.out.println("✅ Connexion à javadb établie.");
         } catch (SQLException e) {
-            System.err.println("Database connection failed: " + e.getMessage());
-            throw new RuntimeException(e);
+            System.err.println("❌ Erreur connexion : " + e.getMessage());
         }
     }
 
     public static Mydatabase getInstance() {
-        if (instance == null) {
-            instance = new Mydatabase();
-        }
+        if (instance == null) instance = new Mydatabase();
         return instance;
     }
 
-    public Connection getConnection() {
-        return connection;
-    }
+    public Connection getCnx() { return cnx; }
 }
