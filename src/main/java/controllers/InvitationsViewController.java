@@ -54,8 +54,8 @@ public class InvitationsViewController {
                     anyHistory = true;
                 }
             }
-            if (!anyPending)  pendingBox.getChildren().add(buildEmpty("Aucune invitation en attente."));
-            if (!anyHistory)  historyBox.getChildren().add(buildEmpty("Pas d'historique."));
+            if (!anyPending) pendingBox.getChildren().add(buildEmpty("Aucune invitation en attente."));
+            if (!anyHistory) historyBox.getChildren().add(buildEmpty("Pas d'historique."));
         } catch (Exception e) {
             e.printStackTrace();
             AlertUtils.showError("Erreur", e.getMessage());
@@ -63,7 +63,8 @@ public class InvitationsViewController {
     }
 
     private Label buildEmpty(String msg) {
-        Label l = new Label(msg); l.getStyleClass().add("subtitle-label");
+        Label l = new Label(msg);
+        l.getStyleClass().add("subtitle-label");
         return l;
     }
 
@@ -114,25 +115,18 @@ public class InvitationsViewController {
         return row;
     }
 
+    /** Accepte via le service transactionnel (6 règles + verrou SQL). */
     private void handleAccept(Invitation inv) {
-        if (player.getTeamId() > 0) {
-            Alert a = new Alert(Alert.AlertType.CONFIRMATION,
-                    "Tu es déjà dans une équipe. Si tu acceptes, tu seras transféré vers "
-                            + inv.getTeamName() + ".\n\nContinuer ?",
-                    ButtonType.YES, ButtonType.NO);
-            if (a.showAndWait().orElse(ButtonType.NO) != ButtonType.YES) return;
-            try {
-                teamService.decrementCurrentPlayers(player.getTeamId());
-            } catch (Exception ignored) {}
-        }
         try {
-            invService.accept(inv);
+            invService.acceptInvitation(inv.getId(), player.getId());
             AlertUtils.showInfo("Bienvenue !", "Tu as rejoint " + inv.getTeamName() + " ! 🎉");
+            // Recharger le joueur (team_id mis à jour)
             Player fresh = playerService.getById(player.getId());
             if (fresh != null) this.player = fresh;
             loadInvitations();
         } catch (IllegalStateException ise) {
             AlertUtils.showError("Refusé", ise.getMessage());
+            loadInvitations();
         } catch (Exception e) {
             AlertUtils.showError("Erreur", e.getMessage());
         }
@@ -157,7 +151,9 @@ public class InvitationsViewController {
             Player fresh = playerService.getById(player.getId());
             ctrl.initWithPlayer(fresh != null ? fresh : player);
             ((Stage) pendingBox.getScene().getWindow()).setScene(new Scene(root, 1280, 800));
-        } catch (Exception e) { e.printStackTrace(); }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     @FXML
@@ -173,6 +169,8 @@ public class InvitationsViewController {
             TeamViewController ctrl = loader.getController();
             ctrl.initWithTeam(team, player);
             ((Stage) pendingBox.getScene().getWindow()).setScene(new Scene(root, 1280, 800));
-        } catch (Exception e) { e.printStackTrace(); }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 }

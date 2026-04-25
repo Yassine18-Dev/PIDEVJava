@@ -1,6 +1,6 @@
 package controllers;
 
-import components.RadarChart;
+import components.SpiderChart;
 import entities.Player;
 import entities.Team;
 import javafx.fxml.FXML;
@@ -18,14 +18,19 @@ import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import services.InvitationService;
 import services.PlayerService;
+import services.RankAverageService;
+import services.RankAverageService.RankComparison;
 import services.TeamService;
 import utils.AlertUtils;
 import utils.Session;
 
 import java.io.File;
-import java.nio.file.*;
-import java.sql.SQLException;
-import java.util.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
+import java.util.List;
+import java.util.UUID;
 
 public class PlayerProfileController {
 
@@ -37,17 +42,18 @@ public class PlayerProfileController {
     @FXML private VBox      comparisonBox, teamBox;
     @FXML private Button    teamActionBtn, invitationsBtn;
 
-    private final PlayerService     playerService = new PlayerService();
-    private final TeamService       teamService   = new TeamService();
-    private final InvitationService invService    = new InvitationService();
+    private final PlayerService      playerService = new PlayerService();
+    private final TeamService        teamService   = new TeamService();
+    private final InvitationService  invService    = new InvitationService();
+    private final RankAverageService rankSvc       = new RankAverageService();
 
-    private Player     player;
-    private Team       currentTeam;
-    private RadarChart radar;
+    private Player      player;
+    private Team        currentTeam;
+    private SpiderChart radar;
 
     @FXML
     public void initialize() {
-        radar = new RadarChart(380, 380);
+        radar = new SpiderChart(380, 380);
         radarContainer.getChildren().add(radar);
         radarContainer.setAlignment(Pos.CENTER);
     }
@@ -65,7 +71,7 @@ public class PlayerProfileController {
         gameBadge.setText(player.getGame() != null ? player.getGame().toUpperCase() : "—");
         rankBadge.setText(player.getRank() != null ? player.getRank().toUpperCase() : "UNRANKED");
 
-        int score = player.getLeaguePoints() + (int)(player.getWinrate() * 20);
+        int score = player.getLeaguePoints() + (int) (player.getWinrate() * 20);
         skillScoreLabel.setText(String.valueOf(score));
 
         renderAvatar();
@@ -83,87 +89,101 @@ public class PlayerProfileController {
             } else {
                 avatarView.setImage(null);
             }
-        } catch (Exception e) { avatarView.setImage(null); }
+        } catch (Exception e) {
+            avatarView.setImage(null);
+        }
     }
 
+    /** Spider chart 5 axes avec highlight des points > 80 (jaunes). */
     private void renderRadar() {
-        Map<String, Double> data = new LinkedHashMap<>();
-        data.put("Vision",        (double) player.getVision());
-        data.put("Tir",           (double) player.getShooting());
-        data.put("Réflexes",      (double) player.getReflex());
-        data.put("Teamplay",      (double) player.getTeamplay());
-        data.put("Communication", (double) player.getCommunication());
-        radar.setData(data);
+        int[] values = new int[]{
+                player.getVision(),
+                player.getCommunication(),
+                player.getTeamplay(),
+                player.getReflex(),
+                player.getShooting()
+        };
+        radar.setValues(values);
     }
 
-    /** Comparaison à la moyenne des joueurs du même rank */
+    /** VS Rank Average — comparaison LP du joueur à la moyenne du même rank. */
     private void renderComparison() {
         comparisonBox.getChildren().clear();
         try {
-            Map<String, double[]> data = computeComparisonData();
-            if (data.isEmpty()) {
-                Label l = new Label("Pas assez de joueurs au même rank pour comparer.");
-                l.getStyleClass().add("subtitle-label");
-                comparisonBox.getChildren().add(l);
+            RankComparison cmp = rankSvc.compareToRankAverage(player);
+
+            // Header
+            Label title = new Label("LEAGUE POINTS vs RANK AVERAGE");
+            title.getStyleClass().add("comp-name");
+
+            Label sub = new Label(String.format(
+                    "Toi : %d LP   |   Moyenne %s : %.0f LP   |   Basé sur %d joueurs",
+                    cmp.playerLP(), player.getRank(), cmp.averageLP(), cmp.playersInRank()));
+            sub.getStyleClass().add("subtitle-label");
+            sub.setWrapText(true);
+
+            // Barre de progression colorée selon le résultat
+            ProgressBar bar = new ProgressBar();
+            double maxRef = Math.max(cmp.averageLP() * 2, 1);
+            bar.setProgress(Math.min(1.0, cmp.playerLP() / maxRef));
+            bar.setMaxWidth(Double.MAX_VALUE);
+            bar.setStyle("-fx-accent: " + cmp.color() + ";");
+
+            // Label résultat
+            Label diffLabel = new Label(cmp.label());
+            diffLabel.setStyle("-fx-text-fill: " + cmp.color() + "; -fx-font-weight: bold; -fx-font-size: 14px;");
+
+            VBox box = new VBox(6, title, sub, bar, diffLabel);
+            comparisonBox.getChildren().add(box);
+
+            // Header global
+            if (cmp.playersInRank() > 0) {
+                aboveAvgLabel.setText(String.format("%+.0f%% %s AVERAGE",
+                        cmp.diffPercent(), cmp.isAbove() ? "ABOVE" : "BELOW"));
+                aboveAvgLabel.setStyle("-fx-text-fill: " + cmp.color() + ";");
+            } else {
                 aboveAvgLabel.setText("");
-                return;
             }
-            double avgPct = data.values().stream().mapToDouble(arr -> arr[2]).average().orElse(0);
-            aboveAvgLabel.setText(String.format("%+.0f%% %s AVERAGE",
-                    avgPct, avgPct >= 0 ? "ABOVE" : "BELOW"));
-            aboveAvgLabel.setStyle(avgPct >= 0
-                    ? "-fx-text-fill: #2ecc71;" : "-fx-text-fill: #e74c3c;");
-            data.forEach((stat, arr) -> comparisonBox.getChildren().add(buildComparisonRow(stat, arr)));
+
+            // Bonus : rappel des compétences clés
+            VBox skills = new VBox(8);
+            skills.getChildren().add(buildSkillLine("🎯 Vision",        player.getVision()));
+            skills.getChildren().add(buildSkillLine("📢 Communication", player.getCommunication()));
+            skills.getChildren().add(buildSkillLine("🤝 Teamplay",      player.getTeamplay()));
+            skills.getChildren().add(buildSkillLine("⚡ Réflexes",      player.getReflex()));
+            skills.getChildren().add(buildSkillLine("🏹 Tir",           player.getShooting()));
+
+            Label skillsTitle = new Label("DÉTAIL DES COMPÉTENCES");
+            skillsTitle.getStyleClass().add("comp-name");
+            skillsTitle.setStyle("-fx-padding: 18 0 0 0;");
+
+            comparisonBox.getChildren().addAll(skillsTitle, skills);
+
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
-    /** Calcul direct (sans service séparé) : valeur joueur, moyenne rank, % diff */
-    private Map<String, double[]> computeComparisonData() throws SQLException {
-        Map<String, double[]> result = new LinkedHashMap<>();
-        java.sql.Connection cnx = utils.Mydatabase.getInstance().getCnx();
-        String sql = "SELECT AVG(winrate) AS w, AVG(kda) AS k, AVG(vision) AS v, AVG(mvp_count) AS m " +
-                "FROM player WHERE `rank`=? AND game=? AND id<>?";
-        try (java.sql.PreparedStatement ps = cnx.prepareStatement(sql)) {
-            ps.setString(1, player.getRank());
-            ps.setString(2, player.getGame());
-            ps.setInt(3,    player.getId());
-            java.sql.ResultSet rs = ps.executeQuery();
-            if (rs.next() && rs.getObject("w") != null) {
-                result.put("Winrate", diffArr(player.getWinrate(),  rs.getDouble("w")));
-                result.put("KDA",     diffArr(player.getKda(),      rs.getDouble("k")));
-                result.put("Vision",  diffArr(player.getVision(),   rs.getDouble("v")));
-                result.put("MVPs",    diffArr(player.getMvpCount(), rs.getDouble("m")));
-            }
-        }
-        return result;
-    }
+    private HBox buildSkillLine(String label, int value) {
+        Label name = new Label(label);
+        name.setStyle("-fx-text-fill: white; -fx-font-size: 13px;");
+        name.setMinWidth(140);
 
-    private double[] diffArr(double mine, double avg) {
-        if (avg <= 0) return new double[]{mine, 0, 0};
-        return new double[]{mine, avg, ((mine - avg) / avg) * 100.0};
-    }
-
-    private VBox buildComparisonRow(String stat, double[] arr) {
-        double mine = arr[0], avg = arr[1], pct = arr[2];
-        boolean above = pct >= 0;
-
-        Label name  = new Label(stat); name.getStyleClass().add("comp-name");
-        Label badge = new Label(String.format("%+.0f%% vs avg", pct));
-        badge.getStyleClass().add(above ? "badge-positive" : "badge-negative");
-
-        ProgressBar bar = new ProgressBar();
-        double maxRef = Math.max(avg * 1.5, 1);
-        bar.setProgress(Math.min(1.0, mine / maxRef));
+        ProgressBar bar = new ProgressBar(value / 100.0);
         bar.setMaxWidth(Double.MAX_VALUE);
-        bar.getStyleClass().add(above ? "bar-positive" : "bar-negative");
+        HBox.setHgrow(bar, Priority.ALWAYS);
 
-        Label value = new Label(String.format("Toi : %.1f   |   Moyenne : %.1f", mine, avg));
-        value.getStyleClass().add("subtitle-label");
+        if (value > 80) bar.getStyleClass().add("bar-positive");
+        else if (value < 50) bar.getStyleClass().add("bar-negative");
 
-        HBox header = new HBox(10, name, badge); header.setAlignment(Pos.CENTER_LEFT);
-        return new VBox(4, header, bar, value);
+        Label val = new Label(value + "/100");
+        val.setStyle((value > 80 ? "-fx-text-fill: #f1c40f;" : "-fx-text-fill: #b9c4d0;")
+                + " -fx-font-weight: bold; -fx-font-size: 12px;");
+        val.setMinWidth(55);
+
+        HBox row = new HBox(10, name, bar, val);
+        row.setAlignment(Pos.CENTER_LEFT);
+        return row;
     }
 
     private void renderTeamCard() {
@@ -194,7 +214,7 @@ public class PlayerProfileController {
             VBox info = new VBox(4);
             Label name = new Label(currentTeam.getName());
             name.getStyleClass().add("title-label");
-            Label sub  = new Label(currentTeam.getCurrentPlayers() + "/" + currentTeam.getMaxPlayers()
+            Label sub = new Label(currentTeam.getCurrentPlayers() + "/" + currentTeam.getMaxPlayers()
                     + " joueurs • Power " + currentTeam.getPowerScore());
             sub.getStyleClass().add("subtitle-label");
             Label game = new Label("🎮 " + currentTeam.getGame().toUpperCase());
@@ -209,14 +229,17 @@ public class PlayerProfileController {
             captainBadge.setManaged(isCaptain);
             teamActionBtn.setText(isCaptain ? "GÉRER MON ÉQUIPE" : "VOIR MON ÉQUIPE");
             teamActionBtn.setOnAction(e -> openMyTeam());
-        } catch (Exception e) { e.printStackTrace(); }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     private void renderInvitationBadge() {
         try {
             int n = invService.countPendingForPlayer(player.getId());
             invitationsBtn.setText(n > 0 ? "📩  Invitations (" + n + ")" : "📩  Invitations");
-        } catch (Exception ignored) {}
+        } catch (Exception ignored) {
+        }
     }
 
     @FXML
@@ -229,9 +252,9 @@ public class PlayerProfileController {
         try {
             Path destDir = Paths.get("avatars");
             if (!Files.exists(destDir)) Files.createDirectories(destDir);
-            String ext  = file.getName().substring(file.getName().lastIndexOf('.'));
+            String ext = file.getName().substring(file.getName().lastIndexOf('.'));
             String name = "avatar_" + player.getId() + "_" + UUID.randomUUID() + ext;
-            Path   dest = destDir.resolve(name);
+            Path dest = destDir.resolve(name);
             Files.copy(file.toPath(), dest, StandardCopyOption.REPLACE_EXISTING);
             player.setAvatar(dest.toString());
             renderAvatar();

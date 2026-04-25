@@ -1,6 +1,6 @@
 package controllers;
 
-import components.RadarChart;
+import components.SpiderChart;
 import entities.Invitation;
 import entities.Player;
 import entities.Team;
@@ -16,12 +16,14 @@ import javafx.scene.shape.Circle;
 import javafx.stage.Stage;
 import services.InvitationService;
 import services.PlayerService;
+import services.TeamRadarService;
+import services.TeamRadarService.SkillStats;
+import services.TeamRadarService.TeamAnalysis;
 import services.TeamService;
 import utils.AlertUtils;
 
-import java.sql.SQLException;
-import java.util.*;
-import java.util.function.ToIntFunction;
+import java.util.List;
+import java.util.Optional;
 
 public class TeamViewController {
 
@@ -36,17 +38,18 @@ public class TeamViewController {
     private final TeamService       teamService    = new TeamService();
     private final PlayerService     playerService  = new PlayerService();
     private final InvitationService invService     = new InvitationService();
+    private final TeamRadarService  teamRadarSvc   = new TeamRadarService();
 
-    private Team       team;
-    private Player     viewer;
-    private boolean    isCaptain;
-    private RadarChart teamRadar;
+    private Team         team;
+    private Player       viewer;
+    private boolean      isCaptain;
+    private SpiderChart  teamRadar;
     private List<Player> roster;
 
     @FXML
     public void initialize() {
-        teamRadar = new RadarChart(320, 320);
-        teamRadar.setStrokeColor(Color.web("#7a5af8"));
+        teamRadar = new SpiderChart(320, 320);
+        teamRadar.setLabels(new String[]{"Vision", "Communication", "Teamplay", "Réflexes", "Tir"});
         teamRadarContainer.getChildren().add(teamRadar);
         teamRadarContainer.setAlignment(Pos.CENTER);
     }
@@ -90,10 +93,10 @@ public class TeamViewController {
                 rosterBox.getChildren().add(l);
                 return;
             }
-            for (Player p : roster) {
-                rosterBox.getChildren().add(buildPlayerCard(p));
-            }
-        } catch (Exception e) { e.printStackTrace(); }
+            for (Player p : roster) rosterBox.getChildren().add(buildPlayerCard(p));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     private HBox buildPlayerCard(Player p) {
@@ -113,13 +116,12 @@ public class TeamViewController {
 
         VBox info = new VBox(2, name, meta);
 
-        // Mini stats
         HBox stats = new HBox(15);
         stats.setAlignment(Pos.CENTER);
         stats.getChildren().addAll(
-                buildMiniStat("WR",    String.format("%.0f%%", p.getWinrate())),
-                buildMiniStat("KDA",   String.format("%.1f",   p.getKda())),
-                buildMiniStat("MVP",   String.valueOf(p.getMvpCount()))
+                buildMiniStat("WR",  String.format("%.0f%%", p.getWinrate())),
+                buildMiniStat("KDA", String.format("%.1f",   p.getKda())),
+                buildMiniStat("MVP", String.valueOf(p.getMvpCount()))
         );
 
         Region spacer = new Region();
@@ -128,7 +130,6 @@ public class TeamViewController {
         HBox row = new HBox(15, avatarPane, info, spacer, stats);
         row.setAlignment(Pos.CENTER_LEFT);
 
-        // Bouton retirer (capitaine seulement, pas sur soi-même)
         if (isCaptain && p.getId() != viewer.getId()) {
             Button removeBtn = new Button("✕");
             removeBtn.getStyleClass().add("danger-button");
@@ -151,56 +152,44 @@ public class TeamViewController {
         return box;
     }
 
+    /** Team Radar Analytics — moyennes + écart-type + détection point faible + recommandation. */
     private void renderTeamRadar() {
         try {
-            if (roster == null || roster.isEmpty()) {
+            TeamAnalysis analysis = teamRadarSvc.analyze(team);
+
+            if (analysis.stats().isEmpty()) {
                 balanceScoreLabel.setText("—");
                 weakestLabel.setText("—");
                 recommendationLabel.setText("Pas de joueurs dans l'équipe.");
                 return;
             }
 
-            Map<String, Double> avgs = new LinkedHashMap<>();
-            avgs.put("Vision",        avg(roster, Player::getVision));
-            avgs.put("Tir",           avg(roster, Player::getShooting));
-            avgs.put("Réflexes",      avg(roster, Player::getReflex));
-            avgs.put("Teamplay",      avg(roster, Player::getTeamplay));
-            avgs.put("Communication", avg(roster, Player::getCommunication));
-
-            teamRadar.setData(avgs);
-
-            double balance = Math.max(0, 100 - stdDev(avgs.values()));
-            String weakest = "—";
-            double weakestValue = Double.MAX_VALUE;
-            for (var e : avgs.entrySet()) {
-                if (e.getValue() < weakestValue) {
-                    weakestValue = e.getValue();
-                    weakest      = e.getKey();
-                }
+            // Alimenter le spider chart avec les moyennes (5 axes)
+            int[] vals = new int[5];
+            int i = 0;
+            for (SkillStats s : analysis.stats().values()) {
+                if (i >= 5) break;
+                vals[i++] = (int) Math.round(s.avg());
             }
+            teamRadar.setValues(vals);
 
-            balanceScoreLabel.setText(String.format("%.0f/100", balance));
-            weakestLabel.setText(weakest);
+            // Cohésion d'équipe
+            balanceScoreLabel.setText(String.format("%.0f/100", analysis.teamCohesion()));
 
+            // Point faible
+            weakestLabel.setText(analysis.weakestSkill());
+
+            // Recommandation (seulement détaillée pour le capitaine)
             if (isCaptain) {
-                recommendationLabel.setText(String.format(
-                        "💡 Suggestion : recrute un joueur fort en %s (score actuel : %.0f/100). " +
-                                "Équilibre global : %.0f/100.", weakest, weakestValue, balance));
+                recommendationLabel.setText(analysis.recommendation());
             } else {
                 recommendationLabel.setText(String.format(
-                        "Équilibre global de l'équipe : %.0f/100.", balance));
+                        "💪 Force de l'équipe : %s (%.0f/100). Cohésion globale : %.0f/100.",
+                        analysis.strongestSkill(), analysis.strongestValue(), analysis.teamCohesion()));
             }
-        } catch (Exception e) { e.printStackTrace(); }
-    }
-
-    private double avg(List<Player> list, ToIntFunction<Player> getter) {
-        return list.stream().mapToInt(getter).average().orElse(0);
-    }
-
-    private double stdDev(java.util.Collection<Double> values) {
-        double mean = values.stream().mapToDouble(Double::doubleValue).average().orElse(0);
-        double var  = values.stream().mapToDouble(v -> Math.pow(v - mean, 2)).average().orElse(0);
-        return Math.sqrt(var);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     @FXML
@@ -224,9 +213,11 @@ public class TeamViewController {
             if (sel.isEmpty()) return;
 
             TextInputDialog msgDlg = new TextInputDialog("Rejoins-nous !");
-            msgDlg.setTitle("Message"); msgDlg.setHeaderText("Message (optionnel) :");
+            msgDlg.setTitle("Message");
+            msgDlg.setHeaderText("Message (optionnel) :");
             String msg = msgDlg.showAndWait().orElse("");
 
+            // Le service applique automatiquement les 6 règles métier
             invService.sendInvitation(team, sel.get(), viewer.getId(), msg);
             AlertUtils.showInfo("Invitation envoyée",
                     "✉ Invitation envoyée à " + sel.get().getUsername() + ".");
@@ -274,12 +265,16 @@ public class TeamViewController {
                         .append(i.getStatus()).append(" (").append(i.getSentAt()).append(")\n");
             }
             Alert a = new Alert(Alert.AlertType.INFORMATION);
-            a.setTitle("Invitations envoyées"); a.setHeaderText("Historique");
-            TextArea ta = new TextArea(sb.toString()); ta.setEditable(false);
+            a.setTitle("Invitations envoyées");
+            a.setHeaderText("Historique");
+            TextArea ta = new TextArea(sb.toString());
+            ta.setEditable(false);
             ta.setPrefSize(500, 300);
             a.getDialogPane().setContent(ta);
             a.showAndWait();
-        } catch (Exception e) { AlertUtils.showError("Erreur", e.getMessage()); }
+        } catch (Exception e) {
+            AlertUtils.showError("Erreur", e.getMessage());
+        }
     }
 
     @FXML
@@ -291,7 +286,9 @@ public class TeamViewController {
             Player fresh = playerService.getById(viewer.getId());
             ctrl.initWithPlayer(fresh != null ? fresh : viewer);
             ((Stage) modeLabel.getScene().getWindow()).setScene(new Scene(root, 1280, 800));
-        } catch (Exception e) { e.printStackTrace(); }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     @FXML
@@ -302,6 +299,8 @@ public class TeamViewController {
             InvitationsViewController ctrl = loader.getController();
             ctrl.initWithPlayer(viewer);
             ((Stage) modeLabel.getScene().getWindow()).setScene(new Scene(root, 1280, 800));
-        } catch (Exception e) { e.printStackTrace(); }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 }
