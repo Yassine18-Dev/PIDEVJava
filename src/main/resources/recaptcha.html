@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>reCAPTCHA</title>
+    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+</head>
+
+<body style="background:#111827; display:flex; justify-content:center; align-items:center; height:100vh; margin:0; overflow:hidden;">
+
+<form>
+    <div class="g-recaptcha"
+         data-sitekey="6LevM8ssAAAAADQhsTLP6M9ZWy66-vz5mR5FTL5Q"
+         data-callback="captchaSuccess"
+         data-expired-callback="captchaExpired"></div>
+</form>
+
+<script>
+    function captchaSuccess(token) {
+        document.title = "TOKEN:" + token;
+    }
+
+    function captchaExpired() {
+        document.title = "TOKEN_EXPIRED";
+    }
+</script>
+
+</body>
+</html>

@@ -1,46 +1,197 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import javafx.geometry.Insets?>
-<?import javafx.scene.control.Button?>
-<?import javafx.scene.control.ComboBox?>
-<?import javafx.scene.control.Label?>
-<?import javafx.scene.control.PasswordField?>
-<?import javafx.scene.control.TextArea?>
-<?import javafx.scene.control.TextField?>
-<?import javafx.scene.layout.BorderPane?>
-<?import javafx.scene.layout.HBox?>
-<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
 
+<BorderPane xmlns="http://javafx.com/javafx/21"
+            xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="controllers.UserController"
+            prefWidth="1200"
+            prefHeight="700"
+            styleClass="root-dashboard"
+            stylesheets="@arenaMind-dashboard.CSS">
 
-<fx:root maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="551.0" prefWidth="665.0" type="BorderPane" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="controllers.UserController">
-   <top>
-      <VBox prefHeight="200.0" prefWidth="100.0" spacing="15.0" style="-fx-background-color: #111827;" BorderPane.alignment="CENTER">
-         <padding>
-            <Insets top="20.0" />
-         </padding>
+   <!-- SIDEBAR -->
+   <left>
+      <VBox spacing="18" prefWidth="240" styleClass="sidebar">
          <children>
-            <Label text="Arena Mind" textFill="WHITE" />
-            <HBox prefHeight="100.0" prefWidth="200.0" spacing="10.0">
+            <Label text="ArenaMind" styleClass="brand-title"/>
+            <Label text="ESPORT CONTROL HUB" styleClass="brand-subtitle"/>
+
+            <Separator styleClass="soft-separator"/>
+
+            <Button text="Dashboard" styleClass="nav-item nav-item-active"/>
+            <Button text="Players" styleClass="nav-item"/>
+            <Button text="Teams" styleClass="nav-item"/>
+            <Button text="Tournaments" styleClass="nav-item"/>
+            <Button text="Settings" styleClass="nav-item"/>
+
+            <Region VBox.vgrow="ALWAYS"/>
+
+            <Label text="v1.0 ArenaMind" styleClass="sidebar-footnote"/>
+         </children>
+         <padding>
+            <Insets top="22" right="18" bottom="22" left="18"/>
+         </padding>
+      </VBox>
+   </left>
+
+   <!-- TOP BAR -->
+   <top>
+      <HBox spacing="12" alignment="CENTER_LEFT" styleClass="topbar">
+         <children>
+            <Label text="ArenaMind Dashboard" styleClass="top-title"/>
+
+            <Region HBox.hgrow="ALWAYS"/>
+
+            <TextField fx:id="tfRecherche"
+                       promptText="Rechercher par username..."
+                       prefWidth="260"
+                       styleClass="search-field"/>
+
+            <Button text="Rechercher"
+                    onAction="#rechercherUser"
+                    styleClass="btn btn-primary"/>
+
+            <Button text="Actualiser"
+                    onAction="#actualiser"
+                    styleClass="btn btn-accent"/>
+
+            <Label text="Admin User" styleClass="user-chip"/>
+         </children>
+         <padding>
+            <Insets top="16" right="20" bottom="16" left="20"/>
+         </padding>
+      </HBox>
+   </top>
+
+   <!-- MAIN CONTENT -->
+   <center>
+      <VBox spacing="16" styleClass="content-wrap">
+         <children>
+
+            <!-- KPI CARDS -->
+            <HBox spacing="14">
                <children>
-                  <TextField fx:id="recherche" promptText="rechercher" text="Rechercher" />
-                  <Button mnemonicParsing="false" text="Rechercher" />
-                  <Button mnemonicParsing="false" text="Trier" />
-                  <Button mnemonicParsing="false" text="Actualiser" />
+                  <VBox HBox.hgrow="ALWAYS" styleClass="kpi-card">
+                     <children>
+                        <Label text="Total Players" styleClass="kpi-title"/>
+                        <Label text="128" styleClass="kpi-value"/>
+                        <Separator styleClass="soft-separator"/>
+                        <Label text="+12 this week" styleClass="kpi-foot"/>
+                     </children>
+                  </VBox>
+
+                  <VBox HBox.hgrow="ALWAYS" styleClass="kpi-card">
+                     <children>
+                        <Label text="Active Now" styleClass="kpi-title"/>
+                        <Label text="64" styleClass="kpi-value"/>
+                        <Separator styleClass="soft-separator"/>
+                        <Label text="peak 81" styleClass="kpi-foot"/>
+                     </children>
+                  </VBox>
+
+                  <VBox HBox.hgrow="ALWAYS" styleClass="kpi-card">
+                     <children>
+                        <Label text="Pro Accounts" styleClass="kpi-title"/>
+                        <Label text="37" styleClass="kpi-value"/>
+                        <Separator styleClass="soft-separator"/>
+                        <Label text="29% of total" styleClass="kpi-foot"/>
+                     </children>
+                  </VBox>
+
+                  <VBox HBox.hgrow="ALWAYS" styleClass="kpi-card">
+                     <children>
+                        <Label text="Online Rate" styleClass="kpi-title"/>
+                        <Label text="50%" styleClass="kpi-value"/>
+                        <Separator styleClass="soft-separator"/>
+                        <Label text="+4% vs yesterday" styleClass="kpi-foot"/>
+                     </children>
+                  </VBox>
+               </children>
+            </HBox>
+
+            <!-- ROSTER + PLAYER PANEL -->
+            <HBox spacing="16" VBox.vgrow="ALWAYS">
+               <children>
+
+                  <!-- LISTE USERS -->
+                  <VBox spacing="10" HBox.hgrow="ALWAYS" styleClass="panel panel-main">
+                     <children>
+                        <Label text="Roster" styleClass="section-title"/>
+
+                        <ListView fx:id="listUsers"
+                                  VBox.vgrow="ALWAYS"
+                                  styleClass="roster-list"/>
+                     </children>
+                     <padding>
+                        <Insets top="16" right="16" bottom="16" left="16"/>
+                     </padding>
+                  </VBox>
+
+                  <!-- ACTIONS / APERÇU -->
+                  <VBox spacing="10" prefWidth="350" styleClass="panel panel-side">
+                     <children>
+                        <Label text="Player Panel" styleClass="section-title accent"/>
+
+                        <Label text="Username" styleClass="field-label"/>
+                        <Label fx:id="lblUsername"
+                               text="Aucun utilisateur sélectionné"
+                               wrapText="true"
+                               styleClass="field-value field-value-strong"/>
+
+                        <Label text="Email" styleClass="field-label"/>
+                        <Label fx:id="lblEmail"
+                               text="-"
+                               wrapText="true"
+                               styleClass="field-value"/>
+
+                        <Label text="Role / Status" styleClass="field-label"/>
+                        <Label fx:id="lblRoleStatus"
+                               text="-"
+                               styleClass="field-value"/>
+
+                        <Label text="Favorite Game" styleClass="field-label"/>
+                        <Label fx:id="lblFavoriteGame"
+                               text="-"
+                               styleClass="field-value"/>
+
+                        <Region VBox.vgrow="ALWAYS"/>
+
+                        <Button text="Ajouter"
+                                onAction="#ouvrirAjout"
+                                maxWidth="1.7976931348623157E308"
+                                styleClass="btn btn-success"/>
+
+                        <Button text="Modifier"
+                                onAction="#ouvrirModification"
+                                maxWidth="1.7976931348623157E308"
+                                styleClass="btn btn-primary"/>
+
+                        <Button text="Consulter"
+                                onAction="#ouvrirConsultation"
+                                maxWidth="1.7976931348623157E308"
+                                styleClass="btn btn-accent"/>
+
+                        <Button text="Supprimer"
+                                onAction="#supprimerUser"
+                                maxWidth="1.7976931348623157E308"
+                                styleClass="btn btn-danger"/>
+                     </children>
+                     <padding>
+                        <Insets top="16" right="16" bottom="16" left="16"/>
+                     </padding>
+                  </VBox>
+
                </children>
             </HBox>
          </children>
+
+         <padding>
+            <Insets top="18" right="20" bottom="20" left="20"/>
+         </padding>
       </VBox>
-   </top>
-   <left>
-      <VBox prefHeight="306.0" prefWidth="368.0" spacing="10.0" BorderPane.alignment="CENTER">
-         <children>
-            <TextField text="username" />
-            <TextField text="Email" />
-            <PasswordField text="Password" />
-            <ComboBox prefWidth="150.0" promptText="Role Type" />
-            <ComboBox prefWidth="150.0" promptText="status" />
-            <TextArea prefHeight="39.0" prefWidth="286.0" text="Bio&#10;" />
-         </children>
-      </VBox>
-   </left>
-</fx:root>
+   </center>
+
+</BorderPane>

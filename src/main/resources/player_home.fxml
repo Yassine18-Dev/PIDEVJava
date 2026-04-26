@@ -1,0 +1,242 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<ScrollPane xmlns="http://javafx.com/javafx/21"
+            xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="controllers.PlayerHomeController"
+            fitToWidth="true"
+            style="-fx-background-color: #0f172a;">
+
+    <content>
+        <VBox spacing="18"
+              prefWidth="1050"
+              style="-fx-background-color: #111827; -fx-padding: 28;">
+
+            <HBox spacing="22"
+                  style="-fx-background-color: #151b2e;
+                         -fx-background-radius: 22;
+                         -fx-border-color: #3b1d75;
+                         -fx-border-radius: 22;
+                         -fx-padding: 24;">
+
+                <VBox spacing="14" HBox.hgrow="ALWAYS">
+
+                    <Label text="⚡ ArenaMind • Season 2026"
+                           style="-fx-text-fill: white;
+                                  -fx-background-color: #0f2747;
+                                  -fx-background-radius: 20;
+                                  -fx-padding: 7 14;
+                                  -fx-font-weight: bold;"/>
+
+                    <Label text="Play. Compete. Win."
+                           style="-fx-text-fill: #8b5cf6;
+                                  -fx-font-size: 32px;
+                                  -fx-font-weight: bold;"/>
+
+                    <Label text="ArenaMind is your esports platform: teams, tournaments, rankings, shop gear, and support. Build your profile and join competitive events weekly."
+                           wrapText="true"
+                           style="-fx-text-fill: #dbeafe;
+                                  -fx-font-size: 14px;"/>
+
+                    <HBox spacing="10">
+                        <Button text="🏆 Join tournaments"
+                                style="-fx-background-color: linear-gradient(to right,#7c3aed,#06b6d4);
+                                       -fx-text-fill: white;
+                                       -fx-font-weight: bold;
+                                       -fx-background-radius: 12;
+                                       -fx-padding: 10 18;"/>
+
+                        <Button text="🎮 Explore games"
+                                style="-fx-background-color: #25143d;
+                                       -fx-text-fill: white;
+                                       -fx-font-weight: bold;
+                                       -fx-background-radius: 12;
+                                       -fx-border-color: #6d28d9;
+                                       -fx-border-radius: 12;
+                                       -fx-padding: 10 18;"/>
+
+                        <Button text="🛒 Shop"
+                                style="-fx-background-color: #25143d;
+                                       -fx-text-fill: white;
+                                       -fx-font-weight: bold;
+                                       -fx-background-radius: 12;
+                                       -fx-border-color: #6d28d9;
+                                       -fx-border-radius: 12;
+                                       -fx-padding: 10 18;"/>
+                    </HBox>
+
+                    <HBox spacing="10">
+                        <Button text="👤 Profile"
+                                style="-fx-background-color: #111827;
+                                       -fx-text-fill: white;
+                                       -fx-font-weight: bold;
+                                       -fx-border-color: #334155;
+                                       -fx-border-radius: 12;
+                                       -fx-background-radius: 12;"/>
+
+                        <Button text="✏ Edit profile"
+                                style="-fx-background-color: #111827;
+                                       -fx-text-fill: white;
+                                       -fx-font-weight: bold;
+                                       -fx-border-color: #334155;
+                                       -fx-border-radius: 12;
+                                       -fx-background-radius: 12;"/>
+
+                        <Button text="🚪 Logout"
+                                onAction="#logout"
+                                style="-fx-background-color: #2b1111;
+                                       -fx-text-fill: white;
+                                       -fx-font-weight: bold;
+                                       -fx-border-color: #ef4444;
+                                       -fx-border-radius: 12;
+                                       -fx-background-radius: 12;"/>
+                    </HBox>
+
+                    <HBox spacing="12">
+                        <VBox spacing="4" prefWidth="130"
+                              style="-fx-background-color: #15193a; -fx-background-radius: 14; -fx-padding: 14;">
+                            <Label text="120+" style="-fx-text-fill: #a855f7; -fx-font-size: 18px; -fx-font-weight: bold;"/>
+                            <Label text="Players" style="-fx-text-fill: #93c5fd;"/>
+                        </VBox>
+
+                        <VBox spacing="4" prefWidth="130"
+                              style="-fx-background-color: #15193a; -fx-background-radius: 14; -fx-padding: 14;">
+                            <Label text="18" style="-fx-text-fill: #a855f7; -fx-font-size: 18px; -fx-font-weight: bold;"/>
+                            <Label text="Weekly events" style="-fx-text-fill: #93c5fd;"/>
+                        </VBox>
+
+                        <VBox spacing="4" prefWidth="130"
+                              style="-fx-background-color: #15193a; -fx-background-radius: 14; -fx-padding: 14;">
+                            <Label text="3" style="-fx-text-fill: #a855f7; -fx-font-size: 18px; -fx-font-weight: bold;"/>
+                            <Label text="Main games" style="-fx-text-fill: #93c5fd;"/>
+                        </VBox>
+
+                        <VBox spacing="4" prefWidth="130"
+                              style="-fx-background-color: #15193a; -fx-background-radius: 14; -fx-padding: 14;">
+                            <Label text="500DT" style="-fx-text-fill: #a855f7; -fx-font-size: 18px; -fx-font-weight: bold;"/>
+                            <Label text="Prize pools" style="-fx-text-fill: #93c5fd;"/>
+                        </VBox>
+                    </HBox>
+                </VBox>
+
+                <VBox spacing="12" prefWidth="330"
+                      style="-fx-background-color: rgba(15,23,42,0.75);
+                             -fx-background-radius: 18;
+                             -fx-padding: 22;
+                             -fx-border-color: #334155;
+                             -fx-border-radius: 18;">
+
+                    <Label text="✅ Verified"
+                           style="-fx-text-fill: #22c55e;
+                                  -fx-font-size: 20px;
+                                  -fx-font-weight: bold;"/>
+
+                    <Label text="Secure accounts + reset password + protected login"
+                           wrapText="true"
+                           style="-fx-text-fill: #e5e7eb;"/>
+
+                    <Label fx:id="lblCurrentUser"
+                           text="Welcome Player"
+                           wrapText="true"
+                           style="-fx-text-fill: #93c5fd;
+                                  -fx-font-size: 14px;"/>
+
+                    <Button text="View details"
+                            style="-fx-background-color: #3b1d75;
+                                   -fx-text-fill: white;
+                                   -fx-font-weight: bold;
+                                   -fx-background-radius: 10;"/>
+                </VBox>
+            </HBox>
+
+            <HBox alignment="CENTER" spacing="16"
+                  style="-fx-background-color: #0b1020;
+                         -fx-padding: 16;">
+                <Button text="🎮 Games" style="-fx-background-color:#25143d; -fx-text-fill:white; -fx-font-weight:bold; -fx-background-radius:20;"/>
+                <Button text="🏆 Tournaments" style="-fx-background-color:#25143d; -fx-text-fill:white; -fx-font-weight:bold; -fx-background-radius:20;"/>
+                <Button text="🧩 Teams" style="-fx-background-color:#25143d; -fx-text-fill:white; -fx-font-weight:bold; -fx-background-radius:20;"/>
+                <Button text="📰 News" style="-fx-background-color:#25143d; -fx-text-fill:white; -fx-font-weight:bold; -fx-background-radius:20;"/>
+                <Button text="🛒 Shop" style="-fx-background-color:#25143d; -fx-text-fill:white; -fx-font-weight:bold; -fx-background-radius:20;"/>
+                <Button text="💬 Support" style="-fx-background-color:#25143d; -fx-text-fill:white; -fx-font-weight:bold; -fx-background-radius:20;"/>
+            </HBox>
+
+            <Label text="🎮 Featured Games"
+                   style="-fx-text-fill: white;
+                          -fx-font-size: 24px;
+                          -fx-font-weight: bold;"/>
+
+            <Label text="Official links + esports competitions."
+                   style="-fx-text-fill: #93c5fd;"/>
+
+            <HBox spacing="14">
+
+                <VBox spacing="10" prefWidth="310"
+                      style="-fx-background-color: #15193a;
+                             -fx-background-radius: 18;
+                             -fx-border-color: #1e3a8a;
+                             -fx-border-radius: 18;
+                             -fx-padding: 18;">
+                    <Label text="FPS"
+                           style="-fx-text-fill: white;
+                                  -fx-background-color: #1d4ed8;
+                                  -fx-background-radius: 20;
+                                  -fx-padding: 5 12;
+                                  -fx-font-weight: bold;"/>
+                    <Label text="Valorant"
+                           style="-fx-text-fill: white;
+                                  -fx-font-size: 18px;
+                                  -fx-font-weight: bold;"/>
+                    <Label text="Join weekly tactical 5v5 tournaments and climb the ranking."
+                           wrapText="true"
+                           style="-fx-text-fill: #93c5fd;"/>
+                </VBox>
+
+                <VBox spacing="10" prefWidth="310"
+                      style="-fx-background-color: #15193a;
+                             -fx-background-radius: 18;
+                             -fx-border-color: #1e3a8a;
+                             -fx-border-radius: 18;
+                             -fx-padding: 18;">
+                    <Label text="MOBA"
+                           style="-fx-text-fill: white;
+                                  -fx-background-color: #1d4ed8;
+                                  -fx-background-radius: 20;
+                                  -fx-padding: 5 12;
+                                  -fx-font-weight: bold;"/>
+                    <Label text="League of Legends"
+                           style="-fx-text-fill: white;
+                                  -fx-font-size: 18px;
+                                  -fx-font-weight: bold;"/>
+                    <Label text="Build your team and compete in strategic events."
+                           wrapText="true"
+                           style="-fx-text-fill: #93c5fd;"/>
+                </VBox>
+
+                <VBox spacing="10" prefWidth="310"
+                      style="-fx-background-color: #15193a;
+                             -fx-background-radius: 18;
+                             -fx-border-color: #1e3a8a;
+                             -fx-border-radius: 18;
+                             -fx-padding: 18;">
+                    <Label text="SPORT"
+                           style="-fx-text-fill: white;
+                                  -fx-background-color: #1d4ed8;
+                                  -fx-background-radius: 20;
+                                  -fx-padding: 5 12;
+                                  -fx-font-weight: bold;"/>
+                    <Label text="EA Sports FC"
+                           style="-fx-text-fill: white;
+                                  -fx-font-size: 18px;
+                                  -fx-font-weight: bold;"/>
+                    <Label text="Compete in football tournaments and win prizes."
+                           wrapText="true"
+                           style="-fx-text-fill: #93c5fd;"/>
+                </VBox>
+
+            </HBox>
+        </VBox>
+    </content>
+</ScrollPane>

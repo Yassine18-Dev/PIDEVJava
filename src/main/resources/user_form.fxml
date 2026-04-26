@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<BorderPane xmlns="http://javafx.com/javafx/21"
+            xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="controllers.UserFormController"
+            prefWidth="520"
+            prefHeight="620"
+            style="-fx-background-color: linear-gradient(to bottom right, #0f172a, #111827);">
+
+    <top>
+        <VBox alignment="CENTER" spacing="10"
+              style="-fx-padding: 25 20 15 20;">
+            <children>
+                <Label fx:id="lblTitle"
+                       text="User Form"
+                       style="-fx-text-fill: white; -fx-font-size: 24px; -fx-font-weight: bold;" />
+
+                <Label text="Manage player profile"
+                       style="-fx-text-fill: #94a3b8;" />
+            </children>
+        </VBox>
+    </top>
+
+    <center>
+        <VBox alignment="CENTER" spacing="12"
+              style="-fx-background-color: #111827; -fx-padding: 25; -fx-background-radius: 18; -fx-border-color: #1f2937; -fx-border-radius: 18;">
+            <children>
+
+                <TextField fx:id="tfEmail"
+                           promptText="Email"
+                           prefWidth="280"
+                           style="-fx-background-color: #1f2937; -fx-text-fill: white; -fx-prompt-text-fill: #94a3b8;" />
+
+                <TextField fx:id="tfUsername"
+                           promptText="Username"
+                           prefWidth="280"
+                           style="-fx-background-color: #1f2937; -fx-text-fill: white; -fx-prompt-text-fill: #94a3b8;" />
+
+                <PasswordField fx:id="pfPassword"
+                               promptText="Password"
+                               prefWidth="280"
+                               style="-fx-background-color: #1f2937; -fx-text-fill: white; -fx-prompt-text-fill: #94a3b8;" />
+
+                <ComboBox fx:id="cbRoleType"
+                          promptText="Role"
+                          prefWidth="280"
+                          style="-fx-background-color: #1f2937;" />
+
+                <ComboBox fx:id="cbStatus"
+                          promptText="Status"
+                          prefWidth="280"
+                          style="-fx-background-color: #1f2937;" />
+
+                <TextArea fx:id="taBio"
+                          promptText="Bio"
+                          prefWidth="280"
+                          prefHeight="80"
+                          style="-fx-background-color: #1f2937; -fx-text-fill: white; -fx-prompt-text-fill: #94a3b8;" />
+
+                <TextField fx:id="tfFavoriteGame"
+                           promptText="Favorite Game"
+                           prefWidth="280"
+                           style="-fx-background-color: #1f2937; -fx-text-fill: white; -fx-prompt-text-fill: #94a3b8;" />
+
+                <Label fx:id="lblMessage"
+                       text=""
+                       style="-fx-text-fill: #f87171;" />
+
+                <HBox alignment="CENTER" spacing="10">
+                    <children>
+                        <Button fx:id="btnSave"
+                                text="Enregistrer"
+                                onAction="#saveUser"
+                                prefWidth="130"
+                                style="-fx-background-color: #10b981; -fx-text-fill: white; -fx-font-weight: bold;" />
+
+                        <Button text="Fermer"
+                                onAction="#closeWindow"
+                                prefWidth="130"
+                                style="-fx-background-color: #475569; -fx-text-fill: white; -fx-font-weight: bold;" />
+                    </children>
+                </HBox>
+
+            </children>
+            <padding>
+                <Insets top="15" right="15" bottom="15" left="15"/>
+            </padding>
+        </VBox>
+    </center>
+
+</BorderPane>

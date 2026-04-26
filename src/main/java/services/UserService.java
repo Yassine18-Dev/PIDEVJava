@@ -3,6 +3,7 @@ package services;
 import entities.User;
 import interfaces.IUserService;
 import utils.Mydatabase;
+import utils.PasswordUtils;
 
 import java.sql.*;
 import java.util.ArrayList;
@@ -25,7 +26,7 @@ public class UserService implements IUserService {
         try (PreparedStatement ps = cnx.prepareStatement(req)) {
             ps.setString(1, user.getEmail());
             ps.setString(2, "[\"ROLE_USER\"]");
-            ps.setString(3, user.getPassword());
+            ps.setString(3, hashIfNeeded(user.getPassword()));
             ps.setString(4, user.getUsername());
             ps.setString(5, user.getRoleType());
             ps.setString(6, user.getStatus());
@@ -42,7 +43,7 @@ public class UserService implements IUserService {
 
         try (PreparedStatement ps = cnx.prepareStatement(req)) {
             ps.setString(1, user.getEmail());
-            ps.setString(2, user.getPassword());
+            ps.setString(2, hashIfNeeded(user.getPassword()));
             ps.setString(3, user.getUsername());
             ps.setString(4, user.getRoleType());
             ps.setString(5, user.getStatus());
@@ -70,18 +71,9 @@ public class UserService implements IUserService {
 
         try (Statement st = cnx.createStatement();
              ResultSet rs = st.executeQuery(req)) {
+
             while (rs.next()) {
-                users.add(new User(
-                        rs.getInt("id"),
-                        rs.getString("email"),
-                        rs.getString("password"),
-                        rs.getString("username"),
-                        rs.getString("role_type"),
-                        rs.getString("status"),
-                        rs.getString("bio"),
-                        rs.getString("favorite_game"),
-                        rs.getTimestamp("created_at")
-                ));
+                users.add(mapUser(rs));
             }
         }
 
@@ -118,6 +110,7 @@ public class UserService implements IUserService {
 
         try (PreparedStatement ps = cnx.prepareStatement(req)) {
             ps.setString(1, email);
+
             try (ResultSet rs = ps.executeQuery()) {
                 return rs.next();
             }
@@ -130,6 +123,7 @@ public class UserService implements IUserService {
 
         try (PreparedStatement ps = cnx.prepareStatement(req)) {
             ps.setString(1, username);
+
             try (ResultSet rs = ps.executeQuery()) {
                 return rs.next();
             }
@@ -138,14 +132,122 @@ public class UserService implements IUserService {
 
     @Override
     public boolean login(String email, String password) throws SQLException {
-        String req = "SELECT id FROM user WHERE email=? AND password=?";
+        return loginUser(email, password) != null;
+    }
+
+    public User loginUser(String email, String password) throws SQLException {
+        String req = "SELECT * FROM user WHERE email=?";
 
         try (PreparedStatement ps = cnx.prepareStatement(req)) {
             ps.setString(1, email);
-            ps.setString(2, password);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    String dbPassword = rs.getString("password");
+                    String hashedInput = PasswordUtils.hashPassword(password);
+
+                    if (dbPassword.equals(hashedInput)) {
+                        return mapUser(rs);
+                    }
+                }
+            }
+        }
+
+        return null;
+    }
+
+    public User getUserByEmail(String email) throws SQLException {
+        String req = "SELECT * FROM user WHERE email=?";
+
+        try (PreparedStatement ps = cnx.prepareStatement(req)) {
+            ps.setString(1, email);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return mapUser(rs);
+                }
+            }
+        }
+
+        return null;
+    }
+
+    public String getRoleByEmail(String email) throws SQLException {
+        String req = "SELECT role_type FROM user WHERE email=?";
+
+        try (PreparedStatement ps = cnx.prepareStatement(req)) {
+            ps.setString(1, email);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getString("role_type");
+                }
+            }
+        }
+
+        return null;
+    }
+
+    public void saveResetCode(String email, String code) throws SQLException {
+        String req = "UPDATE user SET reset_code=?, reset_code_expire=DATE_ADD(NOW(), INTERVAL 10 MINUTE) WHERE email=?";
+
+        try (PreparedStatement ps = cnx.prepareStatement(req)) {
+            ps.setString(1, code);
+            ps.setString(2, email);
+            ps.executeUpdate();
+        }
+    }
+
+    public boolean verifyResetCode(String email, String code) throws SQLException {
+        String req = "SELECT id FROM user WHERE email=? AND reset_code=? AND reset_code_expire > NOW()";
+
+        try (PreparedStatement ps = cnx.prepareStatement(req)) {
+            ps.setString(1, email);
+            ps.setString(2, code);
+
             try (ResultSet rs = ps.executeQuery()) {
                 return rs.next();
             }
         }
+    }
+
+    public void updatePasswordByEmail(String email, String newPassword) throws SQLException {
+        String req = "UPDATE user SET password=?, reset_code=NULL, reset_code_expire=NULL WHERE email=?";
+
+        try (PreparedStatement ps = cnx.prepareStatement(req)) {
+            ps.setString(1, hashIfNeeded(newPassword));
+            ps.setString(2, email);
+            ps.executeUpdate();
+        }
+    }
+
+    private User mapUser(ResultSet rs) throws SQLException {
+        return new User(
+                rs.getInt("id"),
+                rs.getString("email"),
+                rs.getString("password"),
+                rs.getString("username"),
+                rs.getString("role_type"),
+                rs.getString("status"),
+                rs.getString("bio"),
+                rs.getString("favorite_game"),
+                rs.getTimestamp("created_at")
+        );
+    }
+
+    private String hashIfNeeded(String password) {
+        if (password == null) {
+            return null;
+        }
+
+        if (isSha256Hash(password)) {
+            return password;
+        }
+
+        return PasswordUtils.hashPassword(password);
+    }
+
+    private boolean isSha256Hash(String value) {
+        return value != null && value.matches("^[a-fA-F0-9]{64}$");
     }
 }

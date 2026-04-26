@@ -3,73 +3,113 @@
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
+<?import javafx.scene.web.WebView?>
 
 <BorderPane xmlns="http://javafx.com/javafx/21"
             xmlns:fx="http://javafx.com/fxml/1"
             fx:controller="controllers.LoginController"
-            prefWidth="500.0"
-            prefHeight="400.0"
-            style="-fx-background-color: linear-gradient(to bottom right, #0f172a, #111827);">
+            prefWidth="560.0"
+            prefHeight="680.0"
+            styleClass="root-dashboard"
+            stylesheets="@arenaMind-dashboard.CSS">
 
    <!-- TOP -->
    <top>
-      <VBox alignment="CENTER" spacing="10"
-            style="-fx-padding: 30 20 20 20;">
+      <VBox alignment="CENTER" spacing="8" styleClass="login-header">
          <children>
-
-            <Label text=" Arena MIND"
-                   style="-fx-text-fill: white; -fx-font-size: 28px; -fx-font-weight: bold;" />
-
-            <Label text="Access your Esport dashboard"
-                   style="-fx-text-fill: #94a3b8; -fx-font-size: 14px;" />
-
+            <Label text="ArenaMind" styleClass="brand-title"/>
+            <Label text="Access your Esport dashboard" styleClass="login-subtitle"/>
          </children>
+         <padding>
+            <Insets top="30" right="20" bottom="15" left="20"/>
+         </padding>
       </VBox>
    </top>
 
    <!-- CENTER -->
    <center>
-      <VBox alignment="CENTER" spacing="15"
-            style="-fx-background-color: #111827; -fx-padding: 30; -fx-background-radius: 18; -fx-border-color: #1f2937; -fx-border-radius: 18;">
+      <StackPane>
          <children>
+            <VBox alignment="CENTER"
+                  spacing="14"
+                  styleClass="login-card"
+                  maxWidth="380">
 
-            <TextField fx:id="tfEmail"
-                       promptText="Email"
-                       prefWidth="260"
-                       style="-fx-background-color: #1f2937; -fx-text-fill: white; -fx-prompt-text-fill: #94a3b8; -fx-background-radius: 10; -fx-border-color: #334155; -fx-border-radius: 10;" />
+               <children>
+                  <Label text="SIGN IN" styleClass="section-title accent"/>
 
-            <PasswordField fx:id="pfPassword"
-                           promptText="Password"
-                           prefWidth="260"
-                           style="-fx-background-color: #1f2937; -fx-text-fill: white; -fx-prompt-text-fill: #94a3b8; -fx-background-radius: 10; -fx-border-color: #334155; -fx-border-radius: 10;" />
+                  <TextField fx:id="tfEmail"
+                             promptText="Email"
+                             prefWidth="300"
+                             styleClass="search-field"/>
 
-            <Label fx:id="lblMessage"
-                   text=""
-                   style="-fx-text-fill: #f87171; -fx-font-size: 13px;" />
+                  <PasswordField fx:id="pfPassword"
+                                 promptText="Password"
+                                 prefWidth="300"
+                                 styleClass="search-field"/>
 
-            <Button text="Login"
-                    onAction="#login"
-                    prefWidth="260"
-                    style="-fx-background-color: #06b6d4; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 10;" />
+                  <!-- reCAPTCHA -->
+                  <WebView fx:id="captchaWebView"
+                           prefWidth="330"
+                           prefHeight="120"
+                           minHeight="120"
+                           maxHeight="120"
+                           style="-fx-background-color: transparent;"/>
 
+                  <Label fx:id="lblMessage"
+                         text=""
+                         styleClass="error-text"/>
+
+                  <Button text="Login"
+                          onAction="#login"
+                          prefWidth="300"
+                          styleClass="btn btn-primary"/>
+
+                  <Button text="Login with Google"
+                          onAction="#loginWithGoogle"
+                          prefWidth="300"
+                          style="-fx-background-color: white;
+                                 -fx-text-fill: #111827;
+                                 -fx-font-weight: bold;
+                                 -fx-background-radius: 10;
+                                 -fx-padding: 10;"/>
+               </children>
+
+               <padding>
+                  <Insets top="24" right="24" bottom="24" left="24"/>
+               </padding>
+            </VBox>
          </children>
-      </VBox>
+
+         <padding>
+            <Insets top="10" right="20" bottom="10" left="20"/>
+         </padding>
+      </StackPane>
    </center>
 
    <!-- BOTTOM -->
    <bottom>
-      <VBox alignment="CENTER" spacing="8"
-            style="-fx-padding: 20;">
+      <VBox alignment="CENTER" spacing="8">
          <children>
-
-            <Label text="Don’t have an account?"
-                   style="-fx-text-fill: #94a3b8;" />
+            <Label text="Don’t have an account?" styleClass="login-subtitle"/>
 
             <Button text="Go to Sign Up"
                     onAction="#goToSignup"
-                    style="-fx-background-color: #8b5cf6; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 10;" />
+                    prefWidth="260"
+                    styleClass="btn btn-accent"/>
 
+            <Button text="Forgot Password?"
+                    onAction="#goToForgotPassword"
+                    prefWidth="260"
+                    style="-fx-background-color: #475569;
+                           -fx-text-fill: white;
+                           -fx-font-weight: bold;
+                           -fx-background-radius: 10;"/>
          </children>
+
+         <padding>
+            <Insets top="10" right="20" bottom="24" left="20"/>
+         </padding>
       </VBox>
    </bottom>
 

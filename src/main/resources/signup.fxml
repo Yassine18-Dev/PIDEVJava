@@ -1,33 +1,27 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.geometry.Insets?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
 <BorderPane xmlns="http://javafx.com/javafx/21"
             xmlns:fx="http://javafx.com/fxml/1"
             fx:controller="controllers.SignupController"
-            prefWidth="550"
-            prefHeight="600"
+            prefWidth="550.0"
+            prefHeight="650.0"
             style="-fx-background-color: linear-gradient(to bottom right, #0f172a, #111827);">
 
-    <!-- TOP -->
     <top>
         <VBox alignment="CENTER" spacing="10"
               style="-fx-padding: 30 20 20 20;">
             <children>
-
-                <Label text=" Create Account"
+                <Label text="🚀 Create Account"
                        style="-fx-text-fill: white; -fx-font-size: 26px; -fx-font-weight: bold;" />
-
                 <Label text="Join the Esport Arena"
-                       style="-fx-text-fill: #94a3b8;" />
-
+                       style="-fx-text-fill: #94a3b8; -fx-font-size: 14px;" />
             </children>
         </VBox>
     </top>
 
-    <!-- CENTER -->
     <center>
         <VBox alignment="CENTER" spacing="12"
               style="-fx-background-color: #111827; -fx-padding: 25; -fx-background-radius: 18; -fx-border-color: #1f2937; -fx-border-radius: 18;">
@@ -36,63 +30,67 @@
                 <TextField fx:id="tfUsername"
                            promptText="Username"
                            prefWidth="280"
-                           style="-fx-background-color: #1f2937; -fx-text-fill: white; -fx-prompt-text-fill: #94a3b8;" />
+                           style="-fx-background-color: #1f2937; -fx-text-fill: white; -fx-prompt-text-fill: #94a3b8; -fx-background-radius: 10; -fx-border-color: #334155; -fx-border-radius: 10;" />
 
                 <TextField fx:id="tfEmail"
                            promptText="Email"
                            prefWidth="280"
-                           style="-fx-background-color: #1f2937; -fx-text-fill: white; -fx-prompt-text-fill: #94a3b8;" />
+                           style="-fx-background-color: #1f2937; -fx-text-fill: white; -fx-prompt-text-fill: #94a3b8; -fx-background-radius: 10; -fx-border-color: #334155; -fx-border-radius: 10;" />
 
                 <PasswordField fx:id="pfPassword"
                                promptText="Password"
                                prefWidth="280"
-                               style="-fx-background-color: #1f2937; -fx-text-fill: white; -fx-prompt-text-fill: #94a3b8;" />
+                               style="-fx-background-color: #1f2937; -fx-text-fill: white; -fx-prompt-text-fill: #94a3b8; -fx-background-radius: 10; -fx-border-color: #334155; -fx-border-radius: 10;" />
+
+                <PasswordField fx:id="pfConfirmPassword"
+                               promptText="Confirm Password"
+                               prefWidth="280"
+                               style="-fx-background-color: #1f2937; -fx-text-fill: white; -fx-prompt-text-fill: #94a3b8; -fx-background-radius: 10; -fx-border-color: #334155; -fx-border-radius: 10;" />
 
                 <ComboBox fx:id="cbRoleType"
                           promptText="Role"
-                          prefWidth="280" />
+                          prefWidth="280"
+                          style="-fx-background-color: #1f2937; -fx-background-radius: 10; -fx-border-color: #334155; -fx-border-radius: 10;" />
 
                 <ComboBox fx:id="cbStatus"
                           promptText="Status"
-                          prefWidth="280" />
+                          prefWidth="280"
+                          style="-fx-background-color: #1f2937; -fx-background-radius: 10; -fx-border-color: #334155; -fx-border-radius: 10;" />
 
                 <TextArea fx:id="taBio"
                           promptText="Bio"
                           prefWidth="280"
                           prefHeight="70"
-                          style="-fx-background-color: #1f2937; -fx-text-fill: white; -fx-prompt-text-fill: #94a3b8;" />
+                          style="-fx-background-color: #1f2937; -fx-text-fill: white; -fx-prompt-text-fill: #94a3b8; -fx-background-radius: 10; -fx-border-color: #334155; -fx-border-radius: 10;" />
 
                 <TextField fx:id="tfFavoriteGame"
                            promptText="Favorite Game"
                            prefWidth="280"
-                           style="-fx-background-color: #1f2937; -fx-text-fill: white; -fx-prompt-text-fill: #94a3b8;" />
+                           style="-fx-background-color: #1f2937; -fx-text-fill: white; -fx-prompt-text-fill: #94a3b8; -fx-background-radius: 10; -fx-border-color: #334155; -fx-border-radius: 10;" />
 
                 <Label fx:id="lblMessage"
                        text=""
-                       style="-fx-text-fill: #f87171;" />
+                       style="-fx-text-fill: #f87171; -fx-font-size: 13px;" />
 
                 <Button text="Create Account"
                         onAction="#signup"
                         prefWidth="280"
-                        style="-fx-background-color: #10b981; -fx-text-fill: white; -fx-font-weight: bold;" />
+                        style="-fx-background-color: #10b981; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 10;" />
 
             </children>
         </VBox>
     </center>
 
-    <!-- BOTTOM -->
     <bottom>
         <VBox alignment="CENTER" spacing="8"
               style="-fx-padding: 20;">
             <children>
-
                 <Label text="Already have an account?"
                        style="-fx-text-fill: #94a3b8;" />
 
                 <Button text="Back to Login"
                         onAction="#goToLogin"
-                        style="-fx-background-color: #8b5cf6; -fx-text-fill: white; -fx-font-weight: bold;" />
-
+                        style="-fx-background-color: #8b5cf6; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 10;" />
             </children>
         </VBox>
     </bottom>
