@@ -106,6 +106,14 @@ public class MainController {
         NavigationController.showCarte();
     }
     
+    /**
+     * Affiche la vue de gestion des codes promo
+     */
+    @FXML
+    public void showPromoCodes() {
+        NavigationController.showPromoCodes();
+    }
+    
     // ==================== MÉTHODES UTILITAIRES ====================
     
     /**

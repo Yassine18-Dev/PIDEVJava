@@ -320,7 +320,6 @@ public class AllProductsController {
 
                 sizeDialog.showAndWait().ifPresent(selectedSize -> {
                     try {
-                        productService.reduceStock(product.getId(), 1);
                         carteService.add(product, 1, selectedSize);
                         loadProducts();
 
@@ -339,7 +338,6 @@ public class AllProductsController {
                 });
             } else {
                 // Pour les skins et autres produits sans taille
-                productService.reduceStock(product.getId(), 1);
                 carteService.add(product, 1);
                 loadProducts();
 

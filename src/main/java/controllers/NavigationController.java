@@ -101,4 +101,13 @@ public class NavigationController {
             mainController.loadView("/gui/CarteView.fxml", "Shopping cart view loaded");
         }
     }
+
+    /**
+     * Affiche la vue de gestion des codes promo
+     */
+    public static void showPromoCodes() {
+        if (mainController != null) {
+            mainController.loadView("/gui/PromoCodesView.fxml", "Promo codes management view loaded");
+        }
+    }
 }

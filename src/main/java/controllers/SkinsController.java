@@ -325,7 +325,6 @@ public class SkinsController {
                 return;
             }
 
-            productService.reduceStock(product.getId(), 1);
             carteService.add(product, 1);
             loadSkins();
 

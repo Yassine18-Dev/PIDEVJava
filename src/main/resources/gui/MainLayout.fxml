@@ -29,6 +29,7 @@
                 <Button text="All Products" styleClass="sidebar-button" onAction="#showAllProducts"/>
                 <Button text="Add Product" styleClass="sidebar-button button-primary" onAction="#showAddProduct"/>
                 <Button text="Product Management" styleClass="sidebar-button button-success" onAction="#showProductManagement"/>
+                <Button text="Promotions Management" styleClass="sidebar-button button-success" onAction="#showPromoCodes"/>
             </VBox>
             <Separator style="-fx-background-color: #374151;"/>
             <Region VBox.vgrow="ALWAYS"/>

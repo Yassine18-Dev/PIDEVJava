@@ -83,6 +83,10 @@ public class CarteService implements ICarteService {
     
     @Override
     public List<CarteItem> getAll() {
+        System.out.println("CarteService.getAll() - Total items in service: " + carteItems.size());
+        for (CarteItem item : carteItems) {
+            System.out.println("  - Item: " + item.getProduct().getName() + ", Qty: " + item.getQuantity() + ", Price: " + item.getTotalPrice());
+        }
         return new ArrayList<>(carteItems);
     }
     

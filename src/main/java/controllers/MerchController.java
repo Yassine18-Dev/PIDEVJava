@@ -337,7 +337,6 @@ public class MerchController {
             // Afficher la boîte de dialogue
             sizeDialog.showAndWait().ifPresent(selectedSize -> {
                 try {
-                    productService.reduceStock(product.getId(), 1);
                     carteService.add(product, 1, selectedSize);
                     loadMerch();
 

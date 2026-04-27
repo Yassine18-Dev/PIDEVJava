@@ -17,25 +17,71 @@ public class ProductManagementController {
     
     // ==================== SERVICES ====================
     private final ProductService productService = new ProductService();
-    
+
     // ==================== COMPOSANTS FXML ====================
     @FXML
     private TextField searchField;
-    
+
     @FXML
     private ComboBox<String> typeFilter;
-    
+
     @FXML
     private ComboBox<String> priceFilter;
-    
+
     @FXML
     private GridPane productsGrid;
-    
+
     @FXML
     private Label resultsLabel;
-    
+
     @FXML
     private Label statusLabel;
+
+    // Promo Codes Section
+    @FXML
+    private VBox promoCodesSection;
+
+    @FXML
+    private TextField promoCodeField;
+
+    @FXML
+    private ComboBox<String> promoTypeCombo;
+
+    @FXML
+    private TextField promoValueField;
+
+    @FXML
+    private TextField promoMaxUsageField;
+
+    @FXML
+    private DatePicker promoExpirationDatePicker;
+
+    @FXML
+    private TableView<PromoCode> promoCodesTable;
+
+    @FXML
+    private TableColumn<PromoCode, String> codeColumn;
+
+    @FXML
+    private TableColumn<PromoCode, String> typeColumn;
+
+    @FXML
+    private TableColumn<PromoCode, Double> valueColumn;
+
+    @FXML
+    private TableColumn<PromoCode, Integer> maxUsageColumn;
+
+    @FXML
+    private TableColumn<PromoCode, Integer> currentUsageColumn;
+
+    @FXML
+    private TableColumn<PromoCode, String> expirationColumn;
+
+    @FXML
+    private TableColumn<PromoCode, Boolean> activeColumn;
+
+    @FXML
+    private TableColumn<PromoCode, Void> actionsColumn;
     
     // ==================== MÉTHODES D'INITIALISATION ====================
     
@@ -290,12 +336,7 @@ public class ProductManagementController {
         deleteButton.setPrefWidth(80);
         deleteButton.setOnAction(e -> deleteProduct(product));
 
-        Button cartButton = new Button("Ajouter");
-        cartButton.getStyleClass().add("button-primary");
-        cartButton.setPrefWidth(80);
-        cartButton.setOnAction(e -> addToCart(product));
-        
-        buttonBox.getChildren().addAll(editButton, deleteButton, cartButton);
+        buttonBox.getChildren().addAll(editButton, deleteButton);
         
         card.getChildren().addAll(imageView, nameLabel, descLabel, priceLabel, stockLabel, typeLabel, buttonBox);
         return card;
