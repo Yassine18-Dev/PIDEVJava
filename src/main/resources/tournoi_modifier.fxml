@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox xmlns="http://javafx.com/javafx/21"
+      xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="controllers.TournoiModifierController"
+      spacing="18"
+      prefWidth="620"
+      maxWidth="620"
+      stylesheets="@novos.css"
+      styleClass="premium-modal">
+
+    <HBox spacing="18" alignment="CENTER_LEFT">
+        <Label text="✎" prefWidth="70" prefHeight="70" styleClass="premium-icon-main"/>
+        <VBox spacing="6">
+            <Label text="MODIFIER" styleClass="premium-tag"/>
+            <Label text="Modifier un tournoi" styleClass="premium-header-title"/>
+            <Label text="Modifiez les informations du tournoi" styleClass="premium-header-subtitle"/>
+        </VBox>
+    </HBox>
+
+    <VBox spacing="13">
+        <HBox spacing="16" alignment="CENTER_LEFT" styleClass="premium-row,premium-row-pink">
+            <Label text="📄" prefWidth="54" prefHeight="54" styleClass="premium-icon"/>
+            <VBox>
+                <Label text="NOM DU TOURNOI" styleClass="premium-label"/>
+                <TextField fx:id="tfNom" promptText="Nom du tournoi" styleClass="premium-input"/>
+            </VBox>
+        </HBox>
+
+        <HBox spacing="16" alignment="CENTER_LEFT" styleClass="premium-row,premium-row-blue">
+            <Label text="📍" prefWidth="54" prefHeight="54" styleClass="premium-icon,premium-icon-blue"/>
+            <VBox>
+                <Label text="LIEU" styleClass="premium-label,premium-label-blue"/>
+                <TextField fx:id="tfLieu" promptText="Lieu" styleClass="premium-input"/>
+            </VBox>
+        </HBox>
+
+        <HBox spacing="16" alignment="CENTER_LEFT" styleClass="premium-row,premium-row-pink">
+            <Label text="📅" prefWidth="54" prefHeight="54" styleClass="premium-icon"/>
+            <VBox>
+                <Label text="DATE DÉBUT" styleClass="premium-label"/>
+                <TextField fx:id="tfDateDebut" promptText="yyyy-MM-dd" styleClass="premium-input"/>
+            </VBox>
+        </HBox>
+
+        <HBox spacing="16" alignment="CENTER_LEFT" styleClass="premium-row,premium-row-purple">
+            <Label text="✅" prefWidth="54" prefHeight="54" styleClass="premium-icon,premium-icon-purple"/>
+            <VBox>
+                <Label text="DATE FIN" styleClass="premium-label,premium-label-purple"/>
+                <TextField fx:id="tfDateFin" promptText="yyyy-MM-dd" styleClass="premium-input"/>
+            </VBox>
+        </HBox>
+    </VBox>
+
+    <HBox spacing="18" alignment="CENTER">
+        <Button text="✕  Annuler" prefWidth="190" styleClass="btn-secondary" onAction="#retour"/>
+        <Button text="✓  Enregistrer" prefWidth="250" styleClass="btn-primary" onAction="#modifierTournoi"/>
+    </HBox>
+</VBox>

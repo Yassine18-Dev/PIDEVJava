@@ -1,0 +1,39 @@
+/* Bouton Ajouter (Bleu / Cyan) */
+.btn-ajouter {
+    -fx-background-color: #06b6d4;
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+    -fx-background-radius: 10;
+    -fx-cursor: hand;
+}
+
+/* Bouton Modifier (Violet) */
+.btn-modifier {
+    -fx-background-color: #8b5cf6;
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+    -fx-background-radius: 10;
+    -fx-cursor: hand;
+}
+
+/* Bouton Supprimer (Rose élégant) */
+.btn-supprimer {
+    -fx-background-color: #e11d48;
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+    -fx-background-radius: 10;
+    -fx-cursor: hand;
+}
+
+/* Hover (effet au passage souris 🔥) */
+.btn-ajouter:hover {
+    -fx-background-color: #0891b2;
+}
+
+.btn-modifier:hover {
+    -fx-background-color: #7c3aed;
+}
+
+.btn-supprimer:hover {
+    -fx-background-color: #be123c;
+}

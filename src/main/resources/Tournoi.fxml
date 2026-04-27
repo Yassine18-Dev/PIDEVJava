@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<StackPane xmlns="http://javafx.com/javafx/21"
+           xmlns:fx="http://javafx.com/fxml/1"
+           fx:controller="controllers.TournoiController"
+           prefWidth="1100" prefHeight="700"
+           stylesheets="@novos.css">
+
+    <BorderPane prefWidth="1100" prefHeight="700">
+
+        <left>
+            <VBox spacing="26" prefWidth="235" styleClass="sidebar" style="-fx-padding:30;">
+                <Label text="Novos.GG" styleClass="logo"/>
+                <Label text="ESPORT CONTROL HUB" styleClass="small-text"/>
+
+                <Button text="⌂  Dashboard" prefWidth="175" styleClass="nav-btn"/>
+                <Button text="🎮  Matchs" prefWidth="175" styleClass="nav-btn" onAction="#goToMatch"/>
+                <Button text="🏆  Tournois" prefWidth="175" styleClass="nav-active"/>
+                <Button text="⚙  Settings" prefWidth="175" styleClass="nav-btn"/>
+
+                <Region VBox.vgrow="ALWAYS"/>
+                <Label text="v1.0 ArenaMind" styleClass="small-text"/>
+            </VBox>
+        </left>
+
+        <center>
+            <VBox spacing="24" style="-fx-padding:30;">
+
+                <HBox alignment="CENTER_LEFT" spacing="15">
+                    <VBox>
+                        <Label text="Gestion des Tournois" styleClass="title"/>
+                        <Label text="Créer, modifier et supprimer les tournois" styleClass="subtitle"/>
+                    </VBox>
+
+                    <Region HBox.hgrow="ALWAYS"/>
+
+                    <TextField fx:id="tfRecherche" promptText="🔍  Rechercher par nom..." prefWidth="260"/>
+                    <Button text="Rechercher" styleClass="btn-secondary" onAction="#rechercherTournoi"/>
+                    <Button text="Actualiser" styleClass="btn-primary" onAction="#actualiserListe"/>
+                </HBox>
+
+                <HBox spacing="20">
+                    <HBox spacing="18" alignment="CENTER_LEFT" prefWidth="280" styleClass="card">
+                        <Label text="🏆" prefWidth="54" prefHeight="54" styleClass="stat-icon"/>
+                        <VBox spacing="4">
+                            <Label text="TOTAL TOURNOIS" styleClass="stat-label"/>
+                            <Label text="128" styleClass="stat-number"/>
+                            <Label text="+12 cette semaine" styleClass="small-text"/>
+                        </VBox>
+                    </HBox>
+
+                    <HBox spacing="18" alignment="CENTER_LEFT" prefWidth="280" styleClass="card">
+                        <Label text="⚡" prefWidth="54" prefHeight="54" styleClass="stat-icon"/>
+                        <VBox spacing="4">
+                            <Label text="ACTIFS" styleClass="stat-label"/>
+                            <Label text="64" styleClass="stat-number"/>
+                            <Label text="Peak : 81" styleClass="small-text"/>
+                        </VBox>
+                    </HBox>
+
+                    <HBox spacing="18" alignment="CENTER_LEFT" prefWidth="280" styleClass="card">
+                        <Label text="✓" prefWidth="54" prefHeight="54" styleClass="stat-icon"/>
+                        <VBox spacing="4">
+                            <Label text="TERMINÉS" styleClass="stat-label"/>
+                            <Label text="37" styleClass="stat-number"/>
+                            <Label text="29% du total" styleClass="small-text"/>
+                        </VBox>
+                    </HBox>
+                </HBox>
+
+                <HBox spacing="20" VBox.vgrow="ALWAYS">
+
+                    <VBox spacing="14" prefWidth="680" styleClass="card-dark">
+                        <HBox alignment="CENTER_LEFT" spacing="12">
+                            <Label text="☷" prefWidth="34" prefHeight="34" styleClass="section-icon"/>
+                            <VBox>
+                                <Label text="Liste des tournois" styleClass="section-title"/>
+                                <Label text="Double-cliquez sur un tournoi pour le consulter" styleClass="small-text"/>
+                            </VBox>
+                            <Region HBox.hgrow="ALWAYS"/>
+                            <Label text="Tournois" styleClass="badge-ended"/>
+                        </HBox>
+
+                        <HBox spacing="20" style="-fx-padding: 0 14 0 54;">
+                            <Label text="NOM DU TOURNOI" prefWidth="170" styleClass="row-header"/>
+                            <Label text="LIEU" prefWidth="100" styleClass="row-header"/>
+                            <Label text="DATE DÉBUT" prefWidth="110" styleClass="row-header"/>
+                            <Label text="DATE FIN" prefWidth="110" styleClass="row-header"/>
+                            <Label text="STATUT" prefWidth="90" styleClass="row-header"/>
+                        </HBox>
+
+                        <ListView fx:id="listTournois" prefHeight="390" VBox.vgrow="ALWAYS" styleClass="pro-list"/>
+                    </VBox>
+
+                    <VBox spacing="16" prefWidth="320" styleClass="card-dark">
+                        <HBox alignment="CENTER_LEFT" spacing="12">
+                            <Label text="☷" prefWidth="34" prefHeight="34" styleClass="section-icon"/>
+                            <Label text="Détails du tournoi" styleClass="section-title"/>
+                        </HBox>
+
+                        <HBox spacing="12" alignment="CENTER_LEFT" styleClass="detail-line">
+                            <Label text="📄" prefWidth="38" prefHeight="38" styleClass="detail-icon"/>
+                            <VBox>
+                                <Label text="Nom" styleClass="stat-label"/>
+                                <Label fx:id="lblNom" text="-" styleClass="label-info"/>
+                            </VBox>
+                        </HBox>
+
+                        <HBox spacing="12" alignment="CENTER_LEFT" styleClass="detail-line">
+                            <Label text="📍" prefWidth="38" prefHeight="38" styleClass="detail-icon"/>
+                            <VBox>
+                                <Label text="Lieu" styleClass="stat-label"/>
+                                <Label fx:id="lblLieu" text="-" styleClass="label-info"/>
+                            </VBox>
+                        </HBox>
+
+                        <HBox spacing="12" alignment="CENTER_LEFT" styleClass="detail-line">
+                            <Label text="📅" prefWidth="38" prefHeight="38" styleClass="detail-icon"/>
+                            <VBox>
+                                <Label text="Date début" styleClass="stat-label"/>
+                                <Label fx:id="lblDateDebut" text="-" styleClass="label-info"/>
+                            </VBox>
+                        </HBox>
+
+                        <HBox spacing="12" alignment="CENTER_LEFT" styleClass="detail-line">
+                            <Label text="📅" prefWidth="38" prefHeight="38" styleClass="detail-icon"/>
+                            <VBox>
+                                <Label text="Date fin" styleClass="stat-label"/>
+                                <Label fx:id="lblDateFin" text="-" styleClass="label-info"/>
+                            </VBox>
+                        </HBox>
+
+                        <Region VBox.vgrow="ALWAYS"/>
+
+                        <HBox spacing="12" alignment="CENTER">
+                            <Button text="+ Ajouter" prefWidth="135" styleClass="btn-primary" onAction="#ouvrirAjouter"/>
+                            <Button text="✎ Modifier" prefWidth="135" styleClass="btn-secondary" onAction="#ouvrirModifier"/>
+                        </HBox>
+
+                        <Button text="🗑 Supprimer" prefWidth="282" styleClass="btn-danger" onAction="#ouvrirSupprimer"/>
+                    </VBox>
+                </HBox>
+            </VBox>
+        </center>
+    </BorderPane>
+
+    <StackPane fx:id="modalOverlay"
+               visible="false"
+               managed="false"
+               pickOnBounds="true"
+               styleClass="modal-overlay">
+        <Region styleClass="modal-backdrop"/>
+        <StackPane fx:id="modalContent" styleClass="modal-content"/>
+    </StackPane>
+
+</StackPane>

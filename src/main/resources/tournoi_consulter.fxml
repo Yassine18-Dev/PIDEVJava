@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox xmlns="http://javafx.com/javafx/21"
+      xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="controllers.TournoiConsulterController"
+      spacing="22"
+      prefWidth="620"
+      maxWidth="620"
+      stylesheets="@novos.css"
+      styleClass="premium-modal">
+
+    <HBox spacing="18" alignment="CENTER_LEFT">
+        <Label text="🏆" prefWidth="70" prefHeight="70" styleClass="premium-icon-main"/>
+
+        <VBox spacing="6">
+            <Label text="DÉTAILS" styleClass="premium-tag"/>
+            <Label text="Consulter un tournoi" styleClass="premium-header-title"/>
+            <Label text="Détails complets du tournoi sélectionné" styleClass="premium-header-subtitle"/>
+        </VBox>
+    </HBox>
+
+    <VBox spacing="14">
+        <HBox spacing="16" alignment="CENTER_LEFT" styleClass="premium-row,premium-row-pink">
+            <Label text="📄" prefWidth="54" prefHeight="54" styleClass="premium-icon"/>
+            <VBox>
+                <Label text="NOM DU TOURNOI" styleClass="premium-label"/>
+                <Label fx:id="lblNom" styleClass="premium-value"/>
+            </VBox>
+        </HBox>
+
+        <HBox spacing="16" alignment="CENTER_LEFT" styleClass="premium-row,premium-row-blue">
+            <Label text="📍" prefWidth="54" prefHeight="54" styleClass="premium-icon,premium-icon-blue"/>
+            <VBox>
+                <Label text="LIEU" styleClass="premium-label,premium-label-blue"/>
+                <Label fx:id="lblLieu" styleClass="premium-value"/>
+            </VBox>
+        </HBox>
+
+        <HBox spacing="16" alignment="CENTER_LEFT" styleClass="premium-row,premium-row-pink">
+            <Label text="📅" prefWidth="54" prefHeight="54" styleClass="premium-icon"/>
+            <VBox>
+                <Label text="DATE DÉBUT" styleClass="premium-label"/>
+                <Label fx:id="lblDateDebut" styleClass="premium-value"/>
+            </VBox>
+        </HBox>
+
+        <HBox spacing="16" alignment="CENTER_LEFT" styleClass="premium-row,premium-row-purple">
+            <Label text="✅" prefWidth="54" prefHeight="54" styleClass="premium-icon,premium-icon-purple"/>
+            <VBox>
+                <Label text="DATE FIN" styleClass="premium-label,premium-label-purple"/>
+                <Label fx:id="lblDateFin" styleClass="premium-value"/>
+            </VBox>
+        </HBox>
+    </VBox>
+
+    <Button text="←  Retour" prefWidth="360" styleClass="btn-primary" onAction="#retour"/>
+</VBox>
