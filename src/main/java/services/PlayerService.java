@@ -58,6 +58,7 @@ public class PlayerService {
         return list;
     }
 
+    /** Update profil COMPLET (gardé pour compat — mais préfère updateProfileSafe). */
     public void updateProfile(Player p) throws SQLException {
         String sql = "UPDATE player SET username=?, email=?, avatar=?, " +
                 "vision=?, shooting=?, reflex=?, teamplay=?, communication=? WHERE id=?";
@@ -72,6 +73,36 @@ public class PlayerService {
             ps.setInt(8,    p.getCommunication());
             ps.setInt(9,    p.getId());
             ps.executeUpdate();
+        }
+    }
+
+    /**
+     * Update SAFE : modifie tout SAUF l'email (qui passe par EmailConfirmationService).
+     */
+    public void updateProfileSafe(Player p) throws SQLException {
+        String sql = "UPDATE player SET username=?, avatar=?, " +
+                "vision=?, shooting=?, reflex=?, teamplay=?, communication=? WHERE id=?";
+        try (PreparedStatement ps = cnx.prepareStatement(sql)) {
+            ps.setString(1, p.getUsername());
+            ps.setString(2, p.getAvatar());
+            ps.setInt(3,    p.getVision());
+            ps.setInt(4,    p.getShooting());
+            ps.setInt(5,    p.getReflex());
+            ps.setInt(6,    p.getTeamplay());
+            ps.setInt(7,    p.getCommunication());
+            ps.setInt(8,    p.getId());
+            ps.executeUpdate();
+        }
+    }
+
+    /** Vérifie si un username est déjà pris par quelqu'un d'autre. */
+    public boolean isUsernameTaken(String username, int excludeId) throws SQLException {
+        try (PreparedStatement ps = cnx.prepareStatement(
+                "SELECT COUNT(*) FROM player WHERE username = ? AND id <> ?")) {
+            ps.setString(1, username);
+            ps.setInt(2,    excludeId);
+            ResultSet rs = ps.executeQuery();
+            return rs.next() && rs.getInt(1) > 0;
         }
     }
 
@@ -105,6 +136,13 @@ public class PlayerService {
         p.setWinrate(rs.getDouble("winrate"));
         p.setKda(rs.getDouble("kda"));
         p.setMvpCount(rs.getInt("mvp_count"));
+
+        // Confirmation email
+        p.setPendingEmail(rs.getString("pending_email"));
+        p.setEmailConfirmationToken(rs.getString("email_confirmation_token"));
+        p.setEmailTokenExpires(rs.getTimestamp("email_token_expires"));
+        p.setEmailVerified(rs.getBoolean("email_verified"));
+
         return p;
     }
 }

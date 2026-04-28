@@ -46,6 +46,8 @@
                         <Label text="POWER SCORE" styleClass="score-label"/>
                         <Label fx:id="powerScoreLabel" text="0" styleClass="score-value"/>
                     </VBox>
+                    <Button fx:id="editTeamBtn" text="✏ MODIFIER" onAction="#editTeamInfo"
+                            styleClass="secondary-button" visible="false" managed="false"/>
                 </HBox>
 
                 <VBox styleClass="card" spacing="14">
@@ -74,6 +76,16 @@
                                 onAction="#viewSentInvitations" styleClass="secondary-button"/>
                     </HBox>
                     <VBox fx:id="rosterBox" spacing="10"/>
+                </VBox>
+
+                <VBox fx:id="requestsCard" styleClass="card" spacing="12"
+                      visible="false" managed="false">
+                    <HBox alignment="CENTER_LEFT" spacing="10">
+                        <Label text="📥 DEMANDES REÇUES" styleClass="card-title"/>
+                        <Region HBox.hgrow="ALWAYS"/>
+                        <Label fx:id="requestsCountBadge" text="0" styleClass="rank-badge"/>
+                    </HBox>
+                    <VBox fx:id="requestsBox" spacing="10"/>
                 </VBox>
             </VBox>
         </ScrollPane>

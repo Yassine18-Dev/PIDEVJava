@@ -45,6 +45,47 @@ public class TeamService {
         }
     }
 
+    /** Équipes qui recrutent (current_players < max_players) pour un jeu donné. */
+    public List<Team> findRecruitingTeams(String game, int excludePlayerId) throws SQLException {
+        List<Team> list = new ArrayList<>();
+        String sql = "SELECT t.* FROM team t " +
+                "WHERE t.current_players < t.max_players " +
+                "  AND t.game = ? " +
+                "  AND (t.captain_id IS NULL OR t.captain_id <> ?) " +
+                "ORDER BY t.power_score DESC";
+        try (PreparedStatement ps = cnx.prepareStatement(sql)) {
+            ps.setString(1, game);
+            ps.setInt(2,    excludePlayerId);
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) list.add(mapFull(rs));
+        }
+        return list;
+    }
+
+    /** Mise à jour des infos modifiables par le capitaine. */
+    public void updateTeamInfo(Team t) throws SQLException {
+        String sql = "UPDATE team SET name=?, max_players=?, logo=?, banner=? WHERE id=?";
+        try (PreparedStatement ps = cnx.prepareStatement(sql)) {
+            ps.setString(1, t.getName());
+            ps.setInt(2,    t.getMaxPlayers());
+            ps.setString(3, t.getLogo());
+            ps.setString(4, t.getBanner());
+            ps.setInt(5,    t.getId());
+            ps.executeUpdate();
+        }
+    }
+
+    /** Vérifie si un nom d'équipe est déjà pris. */
+    public boolean isTeamNameTaken(String name, int excludeId) throws SQLException {
+        try (PreparedStatement ps = cnx.prepareStatement(
+                "SELECT COUNT(*) FROM team WHERE name = ? AND id <> ?")) {
+            ps.setString(1, name);
+            ps.setInt(2,    excludeId);
+            ResultSet rs = ps.executeQuery();
+            return rs.next() && rs.getInt(1) > 0;
+        }
+    }
+
     private Team mapFull(ResultSet rs) throws SQLException {
         Team t = new Team();
         t.setId(rs.getInt("id"));

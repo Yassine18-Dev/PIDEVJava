@@ -4,6 +4,7 @@ import components.SpiderChart;
 import entities.Invitation;
 import entities.Player;
 import entities.Team;
+import entities.TeamRequest;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Pos;
@@ -19,8 +20,11 @@ import services.PlayerService;
 import services.TeamRadarService;
 import services.TeamRadarService.SkillStats;
 import services.TeamRadarService.TeamAnalysis;
+import services.TeamRequestService;
 import services.TeamService;
 import utils.AlertUtils;
+import utils.Validator;
+import utils.Validator.ValidationResult;
 
 import java.util.List;
 import java.util.Optional;
@@ -33,12 +37,15 @@ public class TeamViewController {
     @FXML private StackPane teamRadarContainer;
     @FXML private Label     balanceScoreLabel, weakestLabel, recommendationLabel;
     @FXML private VBox      rosterBox;
-    @FXML private Button    inviteBtn, invitationsListBtn;
+    @FXML private Button    inviteBtn, invitationsListBtn, editTeamBtn;
+    @FXML private VBox      requestsCard, requestsBox;
+    @FXML private Label     requestsCountBadge;
 
-    private final TeamService       teamService    = new TeamService();
-    private final PlayerService     playerService  = new PlayerService();
-    private final InvitationService invService     = new InvitationService();
-    private final TeamRadarService  teamRadarSvc   = new TeamRadarService();
+    private final TeamService        teamService    = new TeamService();
+    private final PlayerService      playerService  = new PlayerService();
+    private final InvitationService  invService     = new InvitationService();
+    private final TeamRadarService   teamRadarSvc   = new TeamRadarService();
+    private final TeamRequestService requestService = new TeamRequestService();
 
     private Team         team;
     private Player       viewer;
@@ -72,6 +79,8 @@ public class TeamViewController {
         }
         inviteBtn.setVisible(isCaptain);          inviteBtn.setManaged(isCaptain);
         invitationsListBtn.setVisible(isCaptain); invitationsListBtn.setManaged(isCaptain);
+        requestsCard.setVisible(isCaptain);       requestsCard.setManaged(isCaptain);
+        editTeamBtn.setVisible(isCaptain);        editTeamBtn.setManaged(isCaptain);
     }
 
     private void renderAll() {
@@ -81,6 +90,7 @@ public class TeamViewController {
         powerScoreLabel.setText(String.valueOf(team.getPowerScore()));
         renderRoster();
         renderTeamRadar();
+        if (isCaptain) renderRequests();
     }
 
     private void renderRoster() {
@@ -152,7 +162,6 @@ public class TeamViewController {
         return box;
     }
 
-    /** Team Radar Analytics — moyennes + écart-type + détection point faible + recommandation. */
     private void renderTeamRadar() {
         try {
             TeamAnalysis analysis = teamRadarSvc.analyze(team);
@@ -164,7 +173,6 @@ public class TeamViewController {
                 return;
             }
 
-            // Alimenter le spider chart avec les moyennes (5 axes)
             int[] vals = new int[5];
             int i = 0;
             for (SkillStats s : analysis.stats().values()) {
@@ -173,13 +181,9 @@ public class TeamViewController {
             }
             teamRadar.setValues(vals);
 
-            // Cohésion d'équipe
             balanceScoreLabel.setText(String.format("%.0f/100", analysis.teamCohesion()));
-
-            // Point faible
             weakestLabel.setText(analysis.weakestSkill());
 
-            // Recommandation (seulement détaillée pour le capitaine)
             if (isCaptain) {
                 recommendationLabel.setText(analysis.recommendation());
             } else {
@@ -192,6 +196,93 @@ public class TeamViewController {
         }
     }
 
+    // ============================================================
+    // DEMANDES REÇUES (capitaine)
+    // ============================================================
+    private void renderRequests() {
+        requestsBox.getChildren().clear();
+        try {
+            List<TeamRequest> all = requestService.findRequestsForTeam(team.getId());
+            List<TeamRequest> pending = all.stream()
+                    .filter(r -> r.getStatus() == TeamRequest.Status.PENDING)
+                    .toList();
+
+            requestsCountBadge.setText(String.valueOf(pending.size()));
+
+            if (pending.isEmpty()) {
+                Label l = new Label("Aucune demande en attente.");
+                l.getStyleClass().add("subtitle-label");
+                requestsBox.getChildren().add(l);
+                return;
+            }
+            for (TeamRequest r : pending) requestsBox.getChildren().add(buildRequestCard(r));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private VBox buildRequestCard(TeamRequest r) {
+        Label name = new Label("👤 " + r.getPlayerName());
+        name.getStyleClass().add("title-label");
+
+        Label sub = new Label(r.getPlayerRank() + " • " + r.getPlayerLP() + " LP");
+        sub.getStyleClass().add("subtitle-label");
+
+        Label msg = new Label(r.getMessage() != null && !r.getMessage().isBlank()
+                ? "💬 " + r.getMessage() : "(Aucun message)");
+        msg.getStyleClass().add("invitation-message");
+        msg.setWrapText(true);
+
+        Button accept = new Button("✅ ACCEPTER");
+        accept.getStyleClass().add("button");
+        accept.setOnAction(e -> handleAcceptRequest(r));
+
+        Button refuse = new Button("❌ REFUSER");
+        refuse.getStyleClass().add("danger-button");
+        refuse.setOnAction(e -> handleRefuseRequest(r));
+
+        HBox actions = new HBox(10, accept, refuse);
+        actions.setAlignment(Pos.CENTER_LEFT);
+
+        VBox card = new VBox(8, name, sub, msg, actions);
+        card.getStyleClass().add("invitation-card-pending");
+        return card;
+    }
+
+    private void handleAcceptRequest(TeamRequest r) {
+        try {
+            requestService.acceptRequest(r.getId(), viewer.getId());
+            AlertUtils.showInfo("Accepté",
+                    r.getPlayerName() + " a rejoint ton équipe ! 🎉");
+            team = teamService.getById(team.getId());
+            renderAll();
+        } catch (IllegalStateException ise) {
+            AlertUtils.showError("Refusé", ise.getMessage());
+        } catch (Exception e) {
+            AlertUtils.showError("Erreur", e.getMessage());
+        }
+    }
+
+    private void handleRefuseRequest(TeamRequest r) {
+        Alert confirm = new Alert(Alert.AlertType.CONFIRMATION,
+                "Refuser la demande de " + r.getPlayerName() + " ?",
+                ButtonType.YES, ButtonType.NO);
+        confirm.showAndWait().ifPresent(b -> {
+            if (b == ButtonType.YES) {
+                try {
+                    requestService.refuseRequest(r.getId(), viewer.getId());
+                    AlertUtils.showInfo("Refusée", "La demande a été refusée.");
+                    renderRequests();
+                } catch (Exception e) {
+                    AlertUtils.showError("Erreur", e.getMessage());
+                }
+            }
+        });
+    }
+
+    // ============================================================
+    // INVITATIONS (capitaine)
+    // ============================================================
     @FXML
     private void invitePlayer() {
         if (!isCaptain) return;
@@ -217,7 +308,6 @@ public class TeamViewController {
             msgDlg.setHeaderText("Message (optionnel) :");
             String msg = msgDlg.showAndWait().orElse("");
 
-            // Le service applique automatiquement les 6 règles métier
             invService.sendInvitation(team, sel.get(), viewer.getId(), msg);
             AlertUtils.showInfo("Invitation envoyée",
                     "✉ Invitation envoyée à " + sel.get().getUsername() + ".");
@@ -277,6 +367,118 @@ public class TeamViewController {
         }
     }
 
+    // ============================================================
+    // MODIFICATION ÉQUIPE (capitaine) — VALIDATIONS
+    // ============================================================
+    @FXML
+    private void editTeamInfo() {
+        if (!isCaptain) return;
+
+        Dialog<Team> dlg = new Dialog<>();
+        dlg.setTitle("✏ Modifier l'équipe");
+        dlg.setHeaderText("Modifie les informations de " + team.getName());
+
+        TextField nameField = new TextField(team.getName());
+        nameField.setPromptText("Nom de l'équipe");
+        nameField.setStyle("-fx-background-color: #1b2940; -fx-text-fill: white; " +
+                "-fx-pref-height: 38; -fx-background-radius: 8;");
+
+        Spinner<Integer> maxPlayersSpinner = new Spinner<>(2, 10, team.getMaxPlayers());
+        maxPlayersSpinner.setEditable(true);
+
+        Label nameLabel = new Label("Nom de l'équipe :");
+        nameLabel.setStyle("-fx-text-fill: white; -fx-font-weight: bold;");
+        Label maxLabel  = new Label("Nombre max de joueurs :");
+        maxLabel.setStyle("-fx-text-fill: white; -fx-font-weight: bold;");
+
+        Label currentInfo = new Label("Joueurs actuels : " + team.getCurrentPlayers());
+        currentInfo.setStyle("-fx-text-fill: #b9c4d0; -fx-font-size: 12px;");
+
+        Label warning = new Label("⚠ Tu ne peux pas réduire la taille en dessous du nombre actuel de joueurs.");
+        warning.setStyle("-fx-text-fill: #f1c40f; -fx-font-size: 11px;");
+        warning.setWrapText(true);
+
+        VBox box = new VBox(12, nameLabel, nameField, maxLabel, maxPlayersSpinner,
+                currentInfo, warning);
+        box.setStyle("-fx-padding: 20; -fx-background-color: #0d1d38;");
+        box.setMinWidth(400);
+        dlg.getDialogPane().setContent(box);
+        dlg.getDialogPane().setStyle("-fx-background-color: #0d1d38;");
+
+        ButtonType saveBtn   = new ButtonType("💾 SAUVEGARDER", ButtonBar.ButtonData.OK_DONE);
+        ButtonType cancelBtn = new ButtonType("❌ ANNULER",      ButtonBar.ButtonData.CANCEL_CLOSE);
+        dlg.getDialogPane().getButtonTypes().addAll(saveBtn, cancelBtn);
+
+        dlg.getDialogPane().lookupButton(saveBtn).setStyle(
+                "-fx-background-color: #1fb3d2; -fx-text-fill: white; -fx-font-weight: bold; " +
+                        "-fx-background-radius: 14; -fx-pref-height: 38; -fx-cursor: hand;");
+        dlg.getDialogPane().lookupButton(cancelBtn).setStyle(
+                "-fx-background-color: #d9534f; -fx-text-fill: white; -fx-font-weight: bold; " +
+                        "-fx-background-radius: 14; -fx-pref-height: 38; -fx-cursor: hand;");
+
+        dlg.setResultConverter(b -> {
+            if (b != saveBtn) return null;
+            Team updated = new Team();
+            updated.setId(team.getId());
+            updated.setName(nameField.getText());
+            updated.setMaxPlayers(maxPlayersSpinner.getValue());
+            updated.setLogo(team.getLogo());
+            updated.setBanner(team.getBanner());
+            return updated;
+        });
+
+        dlg.showAndWait().ifPresent(this::handleSaveTeam);
+    }
+
+    private void handleSaveTeam(Team updated) {
+        ValidationResult vName = Validator.validateTeamName(updated.getName());
+        if (!vName.ok) {
+            AlertUtils.showError("Nom invalide", vName.message);
+            return;
+        }
+
+        ValidationResult vMax = Validator.validateMaxPlayers(updated.getMaxPlayers());
+        if (!vMax.ok) {
+            AlertUtils.showError("Taille invalide", vMax.message);
+            return;
+        }
+
+        if (updated.getMaxPlayers() < team.getCurrentPlayers()) {
+            AlertUtils.showError("Taille trop petite",
+                    "⚠ Tu ne peux pas mettre une taille max ("
+                            + updated.getMaxPlayers() + ") inférieure au nombre actuel de joueurs ("
+                            + team.getCurrentPlayers() + ").\nRetire d'abord des joueurs.");
+            return;
+        }
+
+        try {
+            if (!updated.getName().trim().equals(team.getName())) {
+                if (teamService.isTeamNameTaken(updated.getName().trim(), team.getId())) {
+                    AlertUtils.showError("Nom déjà pris",
+                            "Une autre équipe utilise déjà le nom \"" + updated.getName() + "\".");
+                    return;
+                }
+            }
+
+            updated.setName(updated.getName().trim());
+            teamService.updateTeamInfo(updated);
+
+            Team fresh = teamService.getById(team.getId());
+            if (fresh != null) {
+                this.team = fresh;
+                renderAll();
+            }
+
+            AlertUtils.showInfo("✅ Équipe mise à jour",
+                    "Les informations de l'équipe ont été enregistrées avec succès.");
+        } catch (Exception e) {
+            AlertUtils.showError("Erreur SQL", e.getMessage());
+        }
+    }
+
+    // ============================================================
+    // NAVIGATION
+    // ============================================================
     @FXML
     private void backToProfile() {
         try {

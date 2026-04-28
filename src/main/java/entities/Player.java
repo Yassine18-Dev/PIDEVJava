@@ -24,9 +24,16 @@ public class Player {
     private double kda           = 1.0;
     private int    mvpCount      = 0;
 
+    // ===== Confirmation email =====
+    private String    pendingEmail;
+    private String    emailConfirmationToken;
+    private Timestamp emailTokenExpires;
+    private boolean   emailVerified = true;
+
     public Player() { this.teamId = 0; }
 
-    public Player(String username, String email, String password, String game, String rank, int leaguePoints, int teamId) {
+    public Player(String username, String email, String password, String game,
+                  String rank, int leaguePoints, int teamId) {
         this.username = username;
         this.email = email;
         this.password = password;
@@ -34,6 +41,16 @@ public class Player {
         this.rank = rank;
         this.leaguePoints = leaguePoints;
         this.teamId = teamId;
+    }
+
+    public Player(String username, String email, String game, String rank, int leaguePoints) {
+        this.username = username;
+        this.email = email;
+        this.password = "password123";
+        this.game = game;
+        this.rank = rank;
+        this.leaguePoints = leaguePoints;
+        this.teamId = 0;
     }
 
     public int getId() { return id; }
@@ -73,6 +90,19 @@ public class Player {
     public void   setKda(double v)        { this.kda = v; }
     public int    getMvpCount()           { return mvpCount; }
     public void   setMvpCount(int v)      { this.mvpCount = v; }
+
+    public String    getPendingEmail()                        { return pendingEmail; }
+    public void      setPendingEmail(String v)                { this.pendingEmail = v; }
+    public String    getEmailConfirmationToken()              { return emailConfirmationToken; }
+    public void      setEmailConfirmationToken(String v)      { this.emailConfirmationToken = v; }
+    public Timestamp getEmailTokenExpires()                   { return emailTokenExpires; }
+    public void      setEmailTokenExpires(Timestamp v)        { this.emailTokenExpires = v; }
+    public boolean   isEmailVerified()                        { return emailVerified; }
+    public void      setEmailVerified(boolean v)              { this.emailVerified = v; }
+
+    public boolean hasPendingEmailChange() {
+        return pendingEmail != null && !pendingEmail.isBlank();
+    }
 
     @Override
     public String toString() {

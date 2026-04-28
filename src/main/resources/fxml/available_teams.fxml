@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<BorderPane xmlns="http://javafx.com/javafx/21"
+            xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="controllers.AvailableTeamsController"
+            stylesheets="@../css/style.css">
+
+    <left>
+        <VBox styleClass="sidebar" prefWidth="220" spacing="8">
+            <padding><Insets top="30" right="15" bottom="20" left="15"/></padding>
+            <Label text="ArenaMind" styleClass="sidebar-logo"/>
+            <Region prefHeight="20"/>
+            <Button text="🏠  Profile"          styleClass="sidebar-btn"
+                    onAction="#backToProfile" maxWidth="Infinity"/>
+            <Button text="🔍  Équipes ouvertes" styleClass="sidebar-btn-active" maxWidth="Infinity"/>
+            <Button text="📩  Invitations"      styleClass="sidebar-btn"
+                    onAction="#openInvitations" maxWidth="Infinity"/>
+            <Button text="📤  Mes demandes"     styleClass="sidebar-btn"
+                    onAction="#openMyRequests" maxWidth="Infinity"/>
+        </VBox>
+    </left>
+
+    <center>
+        <ScrollPane fitToWidth="true" styleClass="transparent-scroll">
+            <VBox spacing="20">
+                <padding><Insets top="25" right="30" bottom="25" left="30"/></padding>
+
+                <Label text="🔍 ÉQUIPES OUVERTES AU RECRUTEMENT" styleClass="title-label"/>
+                <Label fx:id="subtitleLabel" text="" styleClass="subtitle-label"/>
+
+                <VBox fx:id="teamsBox" spacing="14"/>
+            </VBox>
+        </ScrollPane>
+    </center>
+</BorderPane>
