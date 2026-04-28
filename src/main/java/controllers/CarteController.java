@@ -1,12 +1,16 @@
 package controllers;
 
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.VBox;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Region;
 import javafx.scene.image.ImageView;
 import javafx.scene.image.Image;
+import javafx.stage.Stage;
 import entities.CarteItem;
 import entities.Product;
 import entities.PromoCode;
@@ -16,6 +20,7 @@ import services.PromoCodeService;
 import services.LoyaltyService;
 import services.StripePaymentService;
 import services.ProductService;
+import services.CurrencyConversionService;
 import java.util.Optional;
 import java.io.File;
 
@@ -30,6 +35,7 @@ public class CarteController {
     private final LoyaltyService loyaltyService = LoyaltyService.getInstance();
     private final StripePaymentService stripePaymentService = StripePaymentService.getInstance();
     private final ProductService productService = new ProductService();
+    private final CurrencyConversionService currencyConversionService = CurrencyConversionService.getInstance();
 
     // Variables pour les réductions
     private PromoCode appliedPromoCode = null;
@@ -123,18 +129,132 @@ public class CarteController {
         double tierDiscountAmount = subtotal * (loyaltyService.getOrCreateAccount(CURRENT_USER_ID).getDiscountPercentage() / 100.0);
         double finalTotal = subtotal - promoDiscount - loyaltyDiscount - tierDiscountAmount;
 
-        // Simulation de paiement Stripe
+        // Paiement Stripe avec conversion automatique TND → EUR et formulaire complet
         try {
-            long amountInCents = StripePaymentService.convertToCents(finalTotal);
-            stripePaymentService.createPaymentIntent(amountInCents, "tnd");
-
-            // Payer avec succès (simulation)
-            Alert paymentAlert = new Alert(Alert.AlertType.INFORMATION);
-            paymentAlert.setTitle("Payment");
-            paymentAlert.setHeaderText("Payment Processing");
-            paymentAlert.setContentText("Processing payment of " + String.format("%.2f TND", finalTotal) + " via Stripe...\n\n(Test mode - No actual charge)");
-            paymentAlert.showAndWait();
-
+            // Convertir TND → EUR
+            double amountEUR = currencyConversionService.convertTNDtoEUR(finalTotal);
+            
+            // Créer le PaymentIntent et obtenir le client secret
+            String clientSecret = stripePaymentService.createPaymentIntentAndGetClientSecret(finalTotal);
+            String publishableKey = stripePaymentService.getPublishableKey();
+            
+            System.out.println("Ouverture du formulaire de paiement Stripe");
+            System.out.println("Montant: " + finalTotal + " TND → " + amountEUR + " EUR");
+            
+            // Ouvrir le formulaire de paiement dans une nouvelle fenêtre
+            openPaymentForm(publishableKey, clientSecret, amountEUR, finalTotal);
+            
+        } catch (Exception e) {
+            Alert errorAlert = new Alert(Alert.AlertType.ERROR);
+            errorAlert.setTitle("Payment Error");
+            errorAlert.setHeaderText("Payment Initialization Failed");
+            errorAlert.setContentText("Could not initialize payment: " + e.getMessage());
+            errorAlert.show();
+        }
+    }
+    
+    /**
+     * Ouvre le formulaire de paiement Stripe dans une nouvelle fenêtre
+     */
+    private void openPaymentForm(String publishableKey, String clientSecret, double amountEUR, double amountTND) {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/gui/PaymentFormView.fxml"));
+            Parent root = loader.load();
+            
+            PaymentFormController paymentController = loader.getController();
+            
+            // Créer une nouvelle fenêtre pour le paiement
+            Stage paymentStage = new Stage();
+            paymentStage.setTitle("Complete Payment - " + String.format("%.2f TND", amountTND));
+            paymentStage.setScene(new Scene(root, 800, 600));
+            paymentStage.setResizable(false);
+            
+            // Initialiser le formulaire avec les paramètres Stripe
+            paymentController.initializePayment(publishableKey, clientSecret, amountEUR, new PaymentFormController.PaymentCallback() {
+                @Override
+                public void onPaymentSuccess(String paymentIntentId) {
+                    System.out.println("=== PAYMENT SUCCESS CALLBACK RECEIVED ===");
+                    System.out.println("PaymentIntent ID: " + paymentIntentId);
+                    System.out.println("Closing payment window...");
+                    
+                    // Fermer la fenêtre immédiatement depuis JavaFX
+                    paymentStage.close();
+                    completeOrder(amountTND);
+                }
+                
+                @Override
+                public void onPaymentFailure(String error) {
+                    System.err.println("Paiement échoué: " + error);
+                    paymentStage.close();
+                    
+                    Alert errorAlert = new Alert(Alert.AlertType.ERROR);
+                    errorAlert.setTitle("Payment Failed");
+                    errorAlert.setHeaderText("Payment Could Not Be Processed");
+                    errorAlert.setContentText("Payment failed: " + error);
+                    errorAlert.show();
+                }
+                
+                @Override
+                public void onWindowClosed() {
+                    System.out.println("Fenêtre de paiement fermée");
+                }
+            });
+            
+            // Démarrer un timer pour vérifier le statut du paiement
+            // C'est un fallback si le callback JavaScript ne fonctionne pas
+            java.util.Timer paymentTimer = new java.util.Timer();
+            paymentTimer.schedule(new java.util.TimerTask() {
+                @Override
+                public void run() {
+                    javafx.application.Platform.runLater(() -> {
+                        if (paymentStage.isShowing()) {
+                            System.out.println("Payment window still open - checking payment status...");
+                            try {
+                                // Récupérer le PaymentIntent et vérifier son statut
+                                String paymentIntentId = clientSecret.substring(0, clientSecret.indexOf("_secret_"));
+                                com.stripe.model.PaymentIntent paymentIntent = 
+                                    com.stripe.model.PaymentIntent.retrieve(paymentIntentId);
+                                
+                                System.out.println("PaymentIntent status: " + paymentIntent.getStatus());
+                                
+                                if ("succeeded".equals(paymentIntent.getStatus())) {
+                                    System.out.println("Payment succeeded via polling - closing window");
+                                    paymentStage.close();
+                                    completeOrder(amountTND);
+                                    paymentTimer.cancel();
+                                } else if ("canceled".equals(paymentIntent.getStatus())) {
+                                    System.out.println("Payment canceled - closing window");
+                                    paymentStage.close();
+                                    paymentTimer.cancel();
+                                }
+                            } catch (Exception e) {
+                                System.err.println("Error checking payment status: " + e.getMessage());
+                            }
+                        } else {
+                            paymentTimer.cancel();
+                        }
+                    });
+                }
+            }, 3000, 2000); // Commencer après 3 secondes, vérifier toutes les 2 secondes
+            
+            paymentStage.showAndWait();
+            paymentTimer.cancel();
+            
+        } catch (Exception e) {
+            System.err.println("Erreur lors de l'ouverture du formulaire de paiement: " + e.getMessage());
+            Alert errorAlert = new Alert(Alert.AlertType.ERROR);
+            errorAlert.setTitle("Error");
+            errorAlert.setHeaderText("Could Not Open Payment Form");
+            errorAlert.setContentText("An error occurred: " + e.getMessage());
+            errorAlert.show();
+        }
+    }
+    
+    /**
+     * Complète la commande après un paiement réussi
+     */
+    private void completeOrder(double finalTotal) {
+        try {
             // Ajouter les points fidélité (1 TND = 1 point)
             LoyaltyAccount.LoyaltyTier newTier = loyaltyService.addPoints(CURRENT_USER_ID, finalTotal);
 
@@ -179,10 +299,11 @@ public class CarteController {
             loadCart();
             loadLoyaltyInfo();
         } catch (Exception e) {
+            System.err.println("Erreur lors de la completion de la commande: " + e.getMessage());
             Alert errorAlert = new Alert(Alert.AlertType.ERROR);
-            errorAlert.setTitle("Payment Error");
-            errorAlert.setHeaderText("Payment Failed");
-            errorAlert.setContentText("Payment processing failed: " + e.getMessage());
+            errorAlert.setTitle("Error");
+            errorAlert.setHeaderText("Order Completion Failed");
+            errorAlert.setContentText("An error occurred while completing your order: " + e.getMessage());
             errorAlert.show();
         }
     }

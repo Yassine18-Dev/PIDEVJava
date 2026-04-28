@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payment Form</title>
+    <script src="https://js.stripe.com/v3/"></script>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+        .payment-container {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            padding: 40px;
+            max-width: 500px;
+            width: 100%;
+        }
+        h1 {
+            color: #333;
+            margin-top: 0;
+            font-size: 24px;
+            text-align: center;
+        }
+        .amount-display {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        .amount-display .label {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 5px;
+        }
+        .amount-display .value {
+            color: #333;
+            font-size: 32px;
+            font-weight: bold;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            color: #333;
+            font-weight: 500;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+        #card-element {
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            background: white;
+        }
+        #card-element:focus {
+            border-color: #667eea;
+            outline: none;
+        }
+        button {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .error-message {
+            color: #e74c3c;
+            font-size: 14px;
+            margin-top: 10px;
+            display: none;
+        }
+        .success-message {
+            color: #27ae60;
+            font-size: 14px;
+            margin-top: 10px;
+            display: none;
+            text-align: center;
+        }
+        .spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s ease-in-out infinite;
+            margin-right: 10px;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="payment-container">
+        <h1>Complete Your Payment</h1>
+        
+        <div class="amount-display">
+            <div class="label">Total Amount</div>
+            <div class="value" id="amount-display">€0.00</div>
+        </div>
+
+        <form id="payment-form">
+            <div class="form-group">
+                <label for="card-element">Card Details</label>
+                <div id="card-element"></div>
+            </div>
+            
+            <button id="submit-button" type="submit">
+                <span id="button-text">Pay Now</span>
+            </button>
+            
+            <div id="error-message" class="error-message"></div>
+            <div id="success-message" class="success-message"></div>
+        </form>
+    </div>
+
+    <script>
+        let stripe;
+        let elements;
+        let cardElement;
+        let clientSecret;
+        let publishableKey;
+
+        // Initialize Stripe
+        function initializeStripe(publishableKeyParam, clientSecretParam, amountEUR) {
+            publishableKey = publishableKeyParam;
+            clientSecret = clientSecretParam;
+            
+            stripe = Stripe(publishableKey);
+            elements = stripe.elements({
+                clientSecret: clientSecret
+            });
+
+            cardElement = elements.create('card', {
+                style: {
+                    base: {
+                        fontSize: '16px',
+                        color: '#32325d',
+                        fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+                        '::placeholder': {
+                            color: '#aab7c4'
+                        }
+                    }
+                }
+            });
+
+            cardElement.mount('#card-element');
+            
+            // Display amount
+            document.getElementById('amount-display').textContent = '€' + amountEUR.toFixed(2);
+
+            // Handle form submission
+            const form = document.getElementById('payment-form');
+            form.addEventListener('submit', handleSubmit);
+        }
+
+        async function handleSubmit(event) {
+            event.preventDefault();
+            
+            const submitButton = document.getElementById('submit-button');
+            const buttonText = document.getElementById('button-text');
+            const errorMessage = document.getElementById('error-message');
+            const successMessage = document.getElementById('success-message');
+
+            // Show loading state
+            submitButton.disabled = true;
+            buttonText.innerHTML = '<span class="spinner"></span>Processing...';
+            errorMessage.style.display = 'none';
+            successMessage.style.display = 'none';
+
+            try {
+                // Confirm the payment
+                const { error, paymentIntent } = await stripe.confirmCardPayment(clientSecret, {
+                    payment_method: {
+                        card: cardElement,
+                        billing_details: {
+                            name: 'Customer'
+                        }
+                    }
+                });
+
+                if (error) {
+                    // Show error
+                    errorMessage.textContent = error.message;
+                    errorMessage.style.display = 'block';
+                    submitButton.disabled = false;
+                    buttonText.textContent = 'Pay Now';
+                } else {
+                    // Payment succeeded
+                    successMessage.textContent = 'Payment successful!';
+                    successMessage.style.display = 'block';
+                    
+                    console.log('Payment succeeded, paymentIntentId:', paymentIntent.id);
+                    console.log('window.JavaFX:', window.JavaFX);
+                    
+                    // Notify JavaFX immediately (JavaFX will handle window closing)
+                    if (window.JavaFX) {
+                        console.log('Calling paymentSucceeded...');
+                        window.JavaFX.paymentSucceeded(paymentIntent.id);
+                        console.log('paymentSucceeded called');
+                    } else {
+                        console.error('window.JavaFX is not defined');
+                    }
+                }
+            } catch (err) {
+                errorMessage.textContent = 'An error occurred. Please try again.';
+                errorMessage.style.display = 'block';
+                submitButton.disabled = false;
+                buttonText.textContent = 'Pay Now';
+            }
+        }
+
+        // Listen for messages from JavaFX
+        window.addEventListener('message', function(event) {
+            const data = event.data;
+            if (data.type === 'initialize') {
+                initializeStripe(data.publishableKey, data.clientSecret, data.amountEUR);
+            }
+        });
+    </script>
+</body>
+</html>
