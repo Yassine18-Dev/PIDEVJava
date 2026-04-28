@@ -5,6 +5,7 @@ import entities.Invitation;
 import entities.Player;
 import entities.Team;
 import entities.TeamRequest;
+import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Pos;
@@ -15,6 +16,7 @@ import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
 import javafx.stage.Stage;
+import services.DiscordNotificationService;
 import services.InvitationService;
 import services.PlayerService;
 import services.TeamRadarService;
@@ -37,15 +39,16 @@ public class TeamViewController {
     @FXML private StackPane teamRadarContainer;
     @FXML private Label     balanceScoreLabel, weakestLabel, recommendationLabel;
     @FXML private VBox      rosterBox;
-    @FXML private Button    inviteBtn, invitationsListBtn, editTeamBtn;
+    @FXML private Button    inviteBtn, invitationsListBtn, editTeamBtn, discordBtn;
     @FXML private VBox      requestsCard, requestsBox;
     @FXML private Label     requestsCountBadge;
 
-    private final TeamService        teamService    = new TeamService();
-    private final PlayerService      playerService  = new PlayerService();
-    private final InvitationService  invService     = new InvitationService();
-    private final TeamRadarService   teamRadarSvc   = new TeamRadarService();
-    private final TeamRequestService requestService = new TeamRequestService();
+    private final TeamService                teamService    = new TeamService();
+    private final PlayerService              playerService  = new PlayerService();
+    private final InvitationService          invService     = new InvitationService();
+    private final TeamRadarService           teamRadarSvc   = new TeamRadarService();
+    private final TeamRequestService         requestService = new TeamRequestService();
+    private final DiscordNotificationService discordService = new DiscordNotificationService();
 
     private Team         team;
     private Player       viewer;
@@ -81,6 +84,7 @@ public class TeamViewController {
         invitationsListBtn.setVisible(isCaptain); invitationsListBtn.setManaged(isCaptain);
         requestsCard.setVisible(isCaptain);       requestsCard.setManaged(isCaptain);
         editTeamBtn.setVisible(isCaptain);        editTeamBtn.setManaged(isCaptain);
+        discordBtn.setVisible(isCaptain);         discordBtn.setManaged(isCaptain);
     }
 
     private void renderAll() {
@@ -165,14 +169,12 @@ public class TeamViewController {
     private void renderTeamRadar() {
         try {
             TeamAnalysis analysis = teamRadarSvc.analyze(team);
-
             if (analysis.stats().isEmpty()) {
                 balanceScoreLabel.setText("—");
                 weakestLabel.setText("—");
                 recommendationLabel.setText("Pas de joueurs dans l'équipe.");
                 return;
             }
-
             int[] vals = new int[5];
             int i = 0;
             for (SkillStats s : analysis.stats().values()) {
@@ -180,10 +182,8 @@ public class TeamViewController {
                 vals[i++] = (int) Math.round(s.avg());
             }
             teamRadar.setValues(vals);
-
             balanceScoreLabel.setText(String.format("%.0f/100", analysis.teamCohesion()));
             weakestLabel.setText(analysis.weakestSkill());
-
             if (isCaptain) {
                 recommendationLabel.setText(analysis.recommendation());
             } else {
@@ -206,7 +206,6 @@ public class TeamViewController {
             List<TeamRequest> pending = all.stream()
                     .filter(r -> r.getStatus() == TeamRequest.Status.PENDING)
                     .toList();
-
             requestsCountBadge.setText(String.valueOf(pending.size()));
 
             if (pending.isEmpty()) {
@@ -324,9 +323,14 @@ public class TeamViewController {
         confirm.showAndWait().ifPresent(b -> {
             if (b == ButtonType.YES) {
                 try {
+                    String removedName = target.getUsername();
                     playerService.setTeam(target.getId(), null);
                     teamService.decrementCurrentPlayers(team.getId());
                     team.setCurrentPlayers(team.getCurrentPlayers() - 1);
+
+                    // Notification Discord (best-effort)
+                    new Thread(() -> discordService.notifyPlayerLeft(team, removedName)).start();
+
                     renderAll();
                 } catch (Exception ex) {
                     AlertUtils.showError("Erreur", ex.getMessage());
@@ -436,13 +440,11 @@ public class TeamViewController {
             AlertUtils.showError("Nom invalide", vName.message);
             return;
         }
-
         ValidationResult vMax = Validator.validateMaxPlayers(updated.getMaxPlayers());
         if (!vMax.ok) {
             AlertUtils.showError("Taille invalide", vMax.message);
             return;
         }
-
         if (updated.getMaxPlayers() < team.getCurrentPlayers()) {
             AlertUtils.showError("Taille trop petite",
                     "⚠ Tu ne peux pas mettre une taille max ("
@@ -459,7 +461,6 @@ public class TeamViewController {
                     return;
                 }
             }
-
             updated.setName(updated.getName().trim());
             teamService.updateTeamInfo(updated);
 
@@ -474,6 +475,85 @@ public class TeamViewController {
         } catch (Exception e) {
             AlertUtils.showError("Erreur SQL", e.getMessage());
         }
+    }
+
+    // ============================================================
+    // CONFIGURATION DISCORD (API #1)
+    // ============================================================
+    @FXML
+    private void configureDiscord() {
+        if (!isCaptain) return;
+
+        Dialog<String> dlg = new Dialog<>();
+        dlg.setTitle("🔗 Configuration Discord");
+        dlg.setHeaderText(null);
+
+        Label header = new Label("🎮");
+        header.setStyle("-fx-font-size: 50px;");
+
+        Label title = new Label("DISCORD WEBHOOK");
+        title.setStyle("-fx-text-fill: #5865F2; -fx-font-size: 20px; -fx-font-weight: bold;");
+
+        Label info = new Label("Colle l'URL du webhook Discord de ton serveur :\n" +
+                "• Paramètres serveur → Intégrations → Webhooks → Copier l'URL");
+        info.setStyle("-fx-text-fill: #b9c4d0; -fx-font-size: 12px;");
+        info.setWrapText(true);
+
+        TextField urlField = new TextField(team.getDiscordWebhookUrl() != null
+                ? team.getDiscordWebhookUrl() : "");
+        urlField.setPromptText("https://discord.com/api/webhooks/...");
+        urlField.setStyle("-fx-background-color: #1b2940; -fx-text-fill: white; " +
+                "-fx-pref-height: 38; -fx-background-radius: 8; " +
+                "-fx-border-color: #5865F2; -fx-border-radius: 8;");
+
+        Button testBtn = new Button("🧪 TESTER LE WEBHOOK");
+        testBtn.getStyleClass().add("secondary-button");
+        testBtn.setMaxWidth(Double.MAX_VALUE);
+        testBtn.setOnAction(e -> {
+            String url = urlField.getText().trim();
+            if (url.isBlank()) {
+                AlertUtils.showError("URL vide", "Colle d'abord une URL.");
+                return;
+            }
+            new Thread(() -> {
+                boolean ok = discordService.testWebhook(url, team.getName());
+                Platform.runLater(() -> {
+                    if (ok) AlertUtils.showInfo("✅ Test réussi", "Vérifie ton serveur Discord !");
+                    else    AlertUtils.showError("❌ Test échoué", "URL invalide ou serveur indisponible.");
+                });
+            }).start();
+        });
+
+        VBox box = new VBox(12, header, title, info, urlField, testBtn);
+        box.setAlignment(Pos.CENTER);
+        box.setStyle("-fx-padding: 20; -fx-background-color: #0d1d38;");
+        box.setMinWidth(450);
+
+        dlg.getDialogPane().setContent(box);
+        dlg.getDialogPane().setStyle("-fx-background-color: #0d1d38;");
+
+        ButtonType saveBtn   = new ButtonType("💾 SAUVEGARDER", ButtonBar.ButtonData.OK_DONE);
+        ButtonType cancelBtn = new ButtonType("❌ ANNULER",      ButtonBar.ButtonData.CANCEL_CLOSE);
+        dlg.getDialogPane().getButtonTypes().addAll(saveBtn, cancelBtn);
+
+        dlg.getDialogPane().lookupButton(saveBtn).setStyle(
+                "-fx-background-color: #5865F2; -fx-text-fill: white; -fx-font-weight: bold; " +
+                        "-fx-background-radius: 14; -fx-pref-height: 38; -fx-cursor: hand;");
+        dlg.getDialogPane().lookupButton(cancelBtn).setStyle(
+                "-fx-background-color: #d9534f; -fx-text-fill: white; -fx-font-weight: bold; " +
+                        "-fx-background-radius: 14; -fx-pref-height: 38; -fx-cursor: hand;");
+
+        dlg.setResultConverter(b -> b == saveBtn ? urlField.getText() : null);
+        dlg.showAndWait().ifPresent(url -> {
+            try {
+                String trimmed = url.trim();
+                teamService.updateWebhook(team.getId(), trimmed.isEmpty() ? null : trimmed);
+                team.setDiscordWebhookUrl(trimmed);
+                AlertUtils.showInfo("✅ Webhook sauvegardé", "Les notifications Discord sont activées.");
+            } catch (Exception e) {
+                AlertUtils.showError("Erreur SQL", e.getMessage());
+            }
+        });
     }
 
     // ============================================================

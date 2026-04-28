@@ -46,8 +46,16 @@
                         <Label text="POWER SCORE" styleClass="score-label"/>
                         <Label fx:id="powerScoreLabel" text="0" styleClass="score-value"/>
                     </VBox>
-                    <Button fx:id="editTeamBtn" text="✏ MODIFIER" onAction="#editTeamInfo"
-                            styleClass="secondary-button" visible="false" managed="false"/>
+                    <VBox spacing="6" alignment="CENTER">
+                        <Button fx:id="discordBtn" text="🔗 DISCORD" onAction="#configureDiscord"
+                                style="-fx-background-color: #5865F2; -fx-text-fill: white;
+                                       -fx-font-weight: bold; -fx-background-radius: 14;
+                                       -fx-pref-height: 38; -fx-cursor: hand;"
+                                visible="false" managed="false"/>
+                        <Button fx:id="editTeamBtn" text="✏ MODIFIER" onAction="#editTeamInfo"
+                                styleClass="secondary-button"
+                                visible="false" managed="false"/>
+                    </VBox>
                 </HBox>
 
                 <VBox styleClass="card" spacing="14">

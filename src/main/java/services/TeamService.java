@@ -45,7 +45,6 @@ public class TeamService {
         }
     }
 
-    /** Équipes qui recrutent (current_players < max_players) pour un jeu donné. */
     public List<Team> findRecruitingTeams(String game, int excludePlayerId) throws SQLException {
         List<Team> list = new ArrayList<>();
         String sql = "SELECT t.* FROM team t " +
@@ -62,7 +61,6 @@ public class TeamService {
         return list;
     }
 
-    /** Mise à jour des infos modifiables par le capitaine. */
     public void updateTeamInfo(Team t) throws SQLException {
         String sql = "UPDATE team SET name=?, max_players=?, logo=?, banner=? WHERE id=?";
         try (PreparedStatement ps = cnx.prepareStatement(sql)) {
@@ -75,7 +73,6 @@ public class TeamService {
         }
     }
 
-    /** Vérifie si un nom d'équipe est déjà pris. */
     public boolean isTeamNameTaken(String name, int excludeId) throws SQLException {
         try (PreparedStatement ps = cnx.prepareStatement(
                 "SELECT COUNT(*) FROM team WHERE name = ? AND id <> ?")) {
@@ -83,6 +80,16 @@ public class TeamService {
             ps.setInt(2,    excludeId);
             ResultSet rs = ps.executeQuery();
             return rs.next() && rs.getInt(1) > 0;
+        }
+    }
+
+    /** Met à jour le webhook Discord d'une équipe. */
+    public void updateWebhook(int teamId, String webhookUrl) throws SQLException {
+        try (PreparedStatement ps = cnx.prepareStatement(
+                "UPDATE team SET discord_webhook_url=? WHERE id=?")) {
+            ps.setString(1, webhookUrl);
+            ps.setInt(2, teamId);
+            ps.executeUpdate();
         }
     }
 
@@ -99,6 +106,7 @@ public class TeamService {
         t.setCreatedAt(rs.getTimestamp("created_at"));
         int cap = rs.getInt("captain_id");
         t.setCaptainId(rs.wasNull() ? 0 : cap);
+        t.setDiscordWebhookUrl(rs.getString("discord_webhook_url"));
         return t;
     }
 }

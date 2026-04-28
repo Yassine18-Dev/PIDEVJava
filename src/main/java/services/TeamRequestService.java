@@ -13,6 +13,10 @@ public class TeamRequestService {
 
     private final Connection cnx = Mydatabase.getInstance().getCnx();
 
+    private final DiscordNotificationService discordService = new DiscordNotificationService();
+    private final TeamService                _teamSvc       = new TeamService();
+    private final PlayerService              _playerSvc     = new PlayerService();
+
     public void sendRequest(Player player, Team team, String message) throws SQLException {
         if (player.getTeamId() > 0)
             throw new IllegalStateException("Tu es déjà dans une équipe.");
@@ -21,8 +25,6 @@ public class TeamRequestService {
         if (!team.getGame().equalsIgnoreCase(player.getGame()))
             throw new IllegalStateException("Cette équipe joue à " + team.getGame()
                     + ", pas à " + player.getGame() + ".");
-        if ("fifa".equalsIgnoreCase(player.getGame()))
-            throw new IllegalStateException("Les joueurs FIFA ne peuvent pas postuler.");
         if (hasPendingRequest(team.getId(), player.getId()))
             throw new IllegalStateException("Tu as déjà une demande en attente pour cette équipe.");
 
@@ -48,7 +50,6 @@ public class TeamRequestService {
     public void acceptRequest(int requestId, int captainId) throws SQLException {
         cnx.setAutoCommit(false);
         try {
-            // 1) Verrouiller la demande
             TeamRequest req;
             try (PreparedStatement ps = cnx.prepareStatement(
                     "SELECT * FROM team_request WHERE id=? FOR UPDATE")) {
@@ -62,7 +63,6 @@ public class TeamRequestService {
                 throw new IllegalStateException("Cette demande a déjà été traitée.");
             }
 
-            // 2) Verrouiller team + vérifier capitaine
             int currentPlayers, maxPlayers, teamCaptain;
             try (PreparedStatement ps = cnx.prepareStatement(
                     "SELECT current_players, max_players, captain_id FROM team WHERE id=? FOR UPDATE")) {
@@ -74,7 +74,6 @@ public class TeamRequestService {
                 int cap        = rs.getInt("captain_id");
                 teamCaptain    = rs.wasNull() ? 0 : cap;
             }
-
             if (teamCaptain != captainId) {
                 cnx.rollback();
                 throw new IllegalStateException("Seul le capitaine de l'équipe peut accepter.");
@@ -84,7 +83,6 @@ public class TeamRequestService {
                 throw new IllegalStateException("L'équipe est désormais complète.");
             }
 
-            // 3) Verrouiller player
             Integer existingTeam;
             try (PreparedStatement ps = cnx.prepareStatement(
                     "SELECT team_id FROM player WHERE id=? FOR UPDATE")) {
@@ -99,7 +97,6 @@ public class TeamRequestService {
                 throw new IllegalStateException("Ce joueur a déjà rejoint une autre équipe.");
             }
 
-            // 4) Tout OK : appliquer les mises à jour
             try (PreparedStatement ps = cnx.prepareStatement(
                     "UPDATE team_request SET status='ACCEPTED', replied_at=NOW() WHERE id=?")) {
                 ps.setInt(1, requestId);
@@ -125,6 +122,15 @@ public class TeamRequestService {
             }
 
             cnx.commit();
+
+            // ===== NOTIFICATION DISCORD APRÈS COMMIT =====
+            try {
+                Team   team   = _teamSvc.getById(req.getTeamId());
+                Player player = _playerSvc.getById(req.getPlayerId());
+                if (team != null && player != null)
+                    new Thread(() -> discordService.notifyPlayerJoined(team, player)).start();
+            } catch (Exception ignored) {}
+
         } catch (Exception e) {
             try { cnx.rollback(); } catch (Exception ignored) {}
             if (e instanceof SQLException sqe) throw sqe;
@@ -154,20 +160,16 @@ public class TeamRequestService {
     public List<TeamRequest> findRequestsForTeam(int teamId) throws SQLException {
         String sql = "SELECT r.*, t.name AS team_name, t.game AS team_game, " +
                 "       p.username AS player_name, p.`rank` AS player_rank, p.league_points AS player_lp " +
-                "FROM team_request r " +
-                "JOIN team   t ON t.id = r.team_id " +
-                "JOIN player p ON p.id = r.player_id " +
-                "WHERE r.team_id=? ORDER BY r.sent_at DESC";
+                "FROM team_request r JOIN team t ON t.id = r.team_id " +
+                "JOIN player p ON p.id = r.player_id WHERE r.team_id=? ORDER BY r.sent_at DESC";
         return query(sql, teamId);
     }
 
     public List<TeamRequest> findRequestsByPlayer(int playerId) throws SQLException {
         String sql = "SELECT r.*, t.name AS team_name, t.game AS team_game, " +
                 "       p.username AS player_name, p.`rank` AS player_rank, p.league_points AS player_lp " +
-                "FROM team_request r " +
-                "JOIN team   t ON t.id = r.team_id " +
-                "JOIN player p ON p.id = r.player_id " +
-                "WHERE r.player_id=? ORDER BY r.sent_at DESC";
+                "FROM team_request r JOIN team t ON t.id = r.team_id " +
+                "JOIN player p ON p.id = r.player_id WHERE r.player_id=? ORDER BY r.sent_at DESC";
         return query(sql, playerId);
     }
 

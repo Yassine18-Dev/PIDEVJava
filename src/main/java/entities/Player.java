@@ -24,11 +24,21 @@ public class Player {
     private double kda           = 1.0;
     private int    mvpCount      = 0;
 
-    // ===== Confirmation email =====
+    // Confirmation email
     private String    pendingEmail;
     private String    emailConfirmationToken;
     private Timestamp emailTokenExpires;
     private boolean   emailVerified = true;
+
+    // Discord profile
+    private String discordUsername;
+    private String discordTag;
+    private String discordAvatarUrl;
+    private String discordStatus = "OFFLINE";
+    private String discordServerInvite;
+
+    // Champions/Agents favoris (CSV : "Yasuo,Ahri,Zed")
+    private String favoriteChampions;
 
     public Player() { this.teamId = 0; }
 
@@ -100,8 +110,32 @@ public class Player {
     public boolean   isEmailVerified()                        { return emailVerified; }
     public void      setEmailVerified(boolean v)              { this.emailVerified = v; }
 
+    public String getDiscordUsername()              { return discordUsername; }
+    public void   setDiscordUsername(String v)      { this.discordUsername = v; }
+    public String getDiscordTag()                   { return discordTag; }
+    public void   setDiscordTag(String v)           { this.discordTag = v; }
+    public String getDiscordAvatarUrl()             { return discordAvatarUrl; }
+    public void   setDiscordAvatarUrl(String v)     { this.discordAvatarUrl = v; }
+    public String getDiscordStatus()                { return discordStatus; }
+    public void   setDiscordStatus(String v)        { this.discordStatus = v; }
+    public String getDiscordServerInvite()          { return discordServerInvite; }
+    public void   setDiscordServerInvite(String v)  { this.discordServerInvite = v; }
+
+    public String getFavoriteChampions()            { return favoriteChampions; }
+    public void   setFavoriteChampions(String v)    { this.favoriteChampions = v; }
+
     public boolean hasPendingEmailChange() {
         return pendingEmail != null && !pendingEmail.isBlank();
+    }
+
+    public boolean hasDiscordConnected() {
+        return discordUsername != null && !discordUsername.isBlank();
+    }
+
+    public java.util.List<String> getFavoriteChampionsList() {
+        if (favoriteChampions == null || favoriteChampions.isBlank())
+            return new java.util.ArrayList<>();
+        return new java.util.ArrayList<>(java.util.Arrays.asList(favoriteChampions.split(",")));
     }
 
     @Override

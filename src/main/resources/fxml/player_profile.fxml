@@ -17,12 +17,12 @@
             <Label text="ArenaMind" styleClass="sidebar-logo"/>
             <Region prefHeight="20"/>
             <Button text="🏠  Profile"     styleClass="sidebar-btn-active" maxWidth="Infinity"/>
-            <Button text="👥  My Team"     styleClass="sidebar-btn" onAction="#openMyTeam"     maxWidth="Infinity"/>
-            <Button fx:id="invitationsBtn" text="📩  Invitations"  styleClass="sidebar-btn"
+            <Button text="👥  My Team"     styleClass="sidebar-btn" onAction="#openMyTeam" maxWidth="Infinity"/>
+            <Button fx:id="invitationsBtn" text="📩  Invitations" styleClass="sidebar-btn"
                     onAction="#openInvitations" maxWidth="Infinity"/>
+            <Button text="🏆  Tournaments" styleClass="sidebar-btn" maxWidth="Infinity"/>
             <Region VBox.vgrow="ALWAYS"/>
-            <Button text="🔄  Switch User" styleClass="sidebar-btn" onAction="#switchUser"
-                    maxWidth="Infinity"/>
+            <Button text="🔄  Switch User" styleClass="sidebar-btn" onAction="#switchUser" maxWidth="Infinity"/>
         </VBox>
     </left>
 
@@ -71,15 +71,26 @@
                     </VBox>
                 </HBox>
 
-                <VBox fx:id="teamCard" styleClass="card" spacing="12">
-                    <Label text="ÉQUIPE ACTUELLE" styleClass="card-title"/>
-                    <VBox fx:id="teamBox" spacing="8"/>
-                    <Button fx:id="teamActionBtn" text="VOIR MON ÉQUIPE"
-                            onAction="#openMyTeam" styleClass="button" maxWidth="Infinity"/>
-                </VBox>
+                <HBox spacing="20">
+                    <VBox fx:id="discordCardContainer" HBox.hgrow="ALWAYS" spacing="0"
+                          minWidth="320"/>
 
-                <Button text="💾 Sauvegarder le profil" onAction="#saveProfile"
-                        styleClass="button" maxWidth="Infinity"/>
+                    <VBox fx:id="teamCard" styleClass="card" HBox.hgrow="ALWAYS" spacing="12">
+                        <Label text="ÉQUIPE ACTUELLE" styleClass="card-title"/>
+                        <VBox fx:id="teamBox" spacing="8"/>
+                        <Button fx:id="teamActionBtn" text="VOIR MON ÉQUIPE"
+                                onAction="#openMyTeam" styleClass="button" maxWidth="Infinity"/>
+                    </VBox>
+                </HBox>
+
+                <VBox fx:id="championsCardContainer" spacing="0"/>
+
+                <HBox spacing="10">
+                    <Button text="💾 SAUVEGARDER" onAction="#saveProfile"
+                            styleClass="button" HBox.hgrow="ALWAYS" maxWidth="Infinity"/>
+                    <Button text="🎲 AVATAR ALÉATOIRE" onAction="#generateRandomAvatar"
+                            styleClass="secondary-button" HBox.hgrow="ALWAYS" maxWidth="Infinity"/>
+                </HBox>
             </VBox>
         </ScrollPane>
     </center>

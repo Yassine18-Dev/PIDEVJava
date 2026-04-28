@@ -58,7 +58,6 @@ public class PlayerService {
         return list;
     }
 
-    /** Update profil COMPLET (gardé pour compat — mais préfère updateProfileSafe). */
     public void updateProfile(Player p) throws SQLException {
         String sql = "UPDATE player SET username=?, email=?, avatar=?, " +
                 "vision=?, shooting=?, reflex=?, teamplay=?, communication=? WHERE id=?";
@@ -76,9 +75,6 @@ public class PlayerService {
         }
     }
 
-    /**
-     * Update SAFE : modifie tout SAUF l'email (qui passe par EmailConfirmationService).
-     */
     public void updateProfileSafe(Player p) throws SQLException {
         String sql = "UPDATE player SET username=?, avatar=?, " +
                 "vision=?, shooting=?, reflex=?, teamplay=?, communication=? WHERE id=?";
@@ -95,7 +91,6 @@ public class PlayerService {
         }
     }
 
-    /** Vérifie si un username est déjà pris par quelqu'un d'autre. */
     public boolean isUsernameTaken(String username, int excludeId) throws SQLException {
         try (PreparedStatement ps = cnx.prepareStatement(
                 "SELECT COUNT(*) FROM player WHERE username = ? AND id <> ?")) {
@@ -111,6 +106,40 @@ public class PlayerService {
             if (teamId == null || teamId <= 0) ps.setNull(1, Types.INTEGER);
             else                                ps.setInt(1, teamId);
             ps.setInt(2, playerId);
+            ps.executeUpdate();
+        }
+    }
+
+    public void updateAvatar(int playerId, String avatarPath) throws SQLException {
+        try (PreparedStatement ps = cnx.prepareStatement("UPDATE player SET avatar=? WHERE id=?")) {
+            ps.setString(1, avatarPath);
+            ps.setInt(2, playerId);
+            ps.executeUpdate();
+        }
+    }
+
+    /** Met à jour le profil Discord du joueur. */
+    public void updateDiscordProfile(int playerId, String username, String tag,
+                                     String avatarUrl, String status, String serverInvite) throws SQLException {
+        String sql = "UPDATE player SET discord_username=?, discord_tag=?, " +
+                "discord_avatar_url=?, discord_status=?, discord_server_invite=? WHERE id=?";
+        try (PreparedStatement ps = cnx.prepareStatement(sql)) {
+            ps.setString(1, username);
+            ps.setString(2, tag);
+            ps.setString(3, avatarUrl);
+            ps.setString(4, status);
+            ps.setString(5, serverInvite);
+            ps.setInt(6,    playerId);
+            ps.executeUpdate();
+        }
+    }
+
+    /** Met à jour la liste des champions favoris (CSV). */
+    public void updateFavoriteChampions(int playerId, String championsList) throws SQLException {
+        try (PreparedStatement ps = cnx.prepareStatement(
+                "UPDATE player SET favorite_champions=? WHERE id=?")) {
+            ps.setString(1, championsList);
+            ps.setInt(2,    playerId);
             ps.executeUpdate();
         }
     }
@@ -137,11 +166,21 @@ public class PlayerService {
         p.setKda(rs.getDouble("kda"));
         p.setMvpCount(rs.getInt("mvp_count"));
 
-        // Confirmation email
         p.setPendingEmail(rs.getString("pending_email"));
         p.setEmailConfirmationToken(rs.getString("email_confirmation_token"));
         p.setEmailTokenExpires(rs.getTimestamp("email_token_expires"));
         p.setEmailVerified(rs.getBoolean("email_verified"));
+
+        // Discord
+        p.setDiscordUsername(rs.getString("discord_username"));
+        p.setDiscordTag(rs.getString("discord_tag"));
+        p.setDiscordAvatarUrl(rs.getString("discord_avatar_url"));
+        String status = rs.getString("discord_status");
+        p.setDiscordStatus(status != null ? status : "OFFLINE");
+        p.setDiscordServerInvite(rs.getString("discord_server_invite"));
+
+        // Favoris
+        p.setFavoriteChampions(rs.getString("favorite_champions"));
 
         return p;
     }

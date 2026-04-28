@@ -14,6 +14,7 @@ public class Team {
     private String banner;
     private Timestamp createdAt;
     private int captainId;
+    private String discordWebhookUrl;
 
     public Team() {
         this.maxPlayers = 5;
@@ -27,6 +28,16 @@ public class Team {
         this.maxPlayers = 5;
         this.currentPlayers = 0;
         this.powerScore = 0;
+    }
+
+    public Team(String name, String game, int maxPlayers, int currentPlayers, int powerScore, String logo, String banner) {
+        this.name = name;
+        this.game = game;
+        this.maxPlayers = maxPlayers;
+        this.currentPlayers = currentPlayers;
+        this.powerScore = powerScore;
+        this.logo = logo;
+        this.banner = banner;
     }
 
     public int getId() { return id; }
@@ -50,6 +61,9 @@ public class Team {
 
     public int  getCaptainId()             { return captainId; }
     public void setCaptainId(int v)        { this.captainId = v; }
+
+    public String getDiscordWebhookUrl()           { return discordWebhookUrl; }
+    public void   setDiscordWebhookUrl(String v)   { this.discordWebhookUrl = v; }
 
     public boolean isFull()                { return currentPlayers >= maxPlayers; }
     public boolean canRecruit()            { return currentPlayers < maxPlayers; }
