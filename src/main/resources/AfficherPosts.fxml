@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ListView?>
+<?import javafx.scene.control.Tab?>
+<?import javafx.scene.control.TabPane?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Font?>
+
+<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="700.0" prefWidth="900.0" stylesheets="@styles.css" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="controllers.AfficherPostsController">
+   <children>
+      <Label layoutX="300.0" layoutY="14.0" prefHeight="34.0" prefWidth="141.0" text="Posts" textAlignment="CENTER">
+         <font>
+            <Font size="27.0" />
+         </font>
+      </Label>
+
+      <TabPane layoutX="25.0" layoutY="60.0" prefHeight="580.0" prefWidth="850.0" tabClosingPolicy="UNAVAILABLE">
+         <tabs>
+            <Tab text="📋 Tous les Posts">
+               <content>
+                  <AnchorPane>
+                     <children>
+                        <VBox layoutX="10.0" layoutY="10.0" spacing="10">
+                           <children>
+                              <HBox spacing="10">
+                                 <children>
+                                    <Label text="🔍 Recherche:" />
+                                    <TextField fx:id="searchField" prefWidth="200.0" promptText="Titre ou contenu..." />
+                                    <Label text="📅 Date:" />
+                                    <ComboBox fx:id="filterComboBox" prefWidth="120.0" promptText="Choisir..." />
+                                    <Label text="🔥 Popularité:" />
+                                    <ComboBox fx:id="popularityComboBox" prefWidth="120.0" promptText="Choisir..." />
+                                 </children>
+                              </HBox>
+                              <ListView fx:id="postListView" prefHeight="430.0" prefWidth="830.0" />
+                              <HBox spacing="10" alignment="CENTER">
+                                 <children>
+                                    <Label fx:id="countLabel" text="Total: 0 posts" style="-fx-text-fill: #9CA3AF;" />
+                                    <Region HBox.hgrow="ALWAYS" />
+                                    <Button fx:id="btnPrevious" text="◀ Précédent" />
+                                    <Label fx:id="pageLabel" text="Page 1 / 1" />
+                                    <Button fx:id="btnNext" text="Suivant ▶" />
+                                 </children>
+                              </HBox>
+                           </children>
+                        </VBox>
+                     </children>
+                  </AnchorPane>
+               </content>
+            </Tab>
+            <Tab text="✏️ Modifier">
+               <content>
+                  <AnchorPane>
+                     <children>
+                        <ListView fx:id="editListView" layoutX="10.0" layoutY="10.0" prefHeight="550.0" prefWidth="830.0" />
+                     </children>
+                  </AnchorPane>
+               </content>
+            </Tab>
+            <Tab text="🗑️ Supprimer">
+               <content>
+                  <AnchorPane>
+                     <children>
+                        <ListView fx:id="deleteListView" layoutX="10.0" layoutY="10.0" prefHeight="550.0" prefWidth="830.0" />
+                     </children>
+                  </AnchorPane>
+               </content>
+            </Tab>
+         </tabs>
+      </TabPane>
+
+      <Button fx:id="btnNavAjout" layoutX="760.0" layoutY="20.0" mnemonicParsing="false" onAction="#onNavAjout" text="+ Nouveau Post" />
+   </children>
+</AnchorPane>
