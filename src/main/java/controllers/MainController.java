@@ -102,8 +102,8 @@ public class MainController {
      * Affiche la vue du panier
      */
     @FXML
-    public void showCarte() {
-        NavigationController.showCarte();
+    public void showCart() {
+        loadView("/gui/CarteView.fxml", "Cart view loaded");
     }
     
     /**
@@ -112,6 +112,196 @@ public class MainController {
     @FXML
     public void showPromoCodes() {
         NavigationController.showPromoCodes();
+    }
+    
+    // ==================== MODULE JOUEUR ====================
+    
+    /**
+     * Affiche le profil du joueur
+     */
+    @FXML
+    public void showPlayerProfile() {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/player_profile.fxml"));
+            javafx.scene.Parent view = loader.load();
+            
+            // Initialiser avec un joueur par défaut (ID 1)
+            PlayerProfileController ctrl = loader.getController();
+            services.PlayerService playerService = new services.PlayerService();
+            try {
+                entities.Player defaultPlayer = playerService.getById(1);
+                if (defaultPlayer != null) {
+                    ctrl.initWithPlayer(defaultPlayer);
+                }
+            } catch (Exception e) {
+                System.err.println("Error loading player: " + e.getMessage());
+            }
+            
+            contentArea.getChildren().clear();
+            contentArea.getChildren().add(view);
+            
+            AnchorPane.setTopAnchor(view, 0.0);
+            AnchorPane.setBottomAnchor(view, 0.0);
+            AnchorPane.setLeftAnchor(view, 0.0);
+            AnchorPane.setRightAnchor(view, 0.0);
+            
+            updateStatus("Player profile loaded");
+        } catch (IOException e) {
+            System.err.println("Error loading player profile: " + e.getMessage());
+            updateStatus("Error loading view");
+        }
+    }
+    
+    /**
+     * Affiche la vue de l'équipe du joueur
+     */
+    @FXML
+    public void showTeamView() {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/team_view.fxml"));
+            javafx.scene.Parent view = loader.load();
+            
+            // Initialiser avec un joueur par défaut
+            TeamViewController ctrl = loader.getController();
+            services.PlayerService playerService = new services.PlayerService();
+            try {
+                entities.Player defaultPlayer = playerService.getById(1);
+                if (defaultPlayer != null && defaultPlayer.getTeamId() > 0) {
+                    services.TeamService teamService = new services.TeamService();
+                    try {
+                        entities.Team team = teamService.getById(defaultPlayer.getTeamId());
+                        if (team != null) {
+                            ctrl.initWithTeam(team, defaultPlayer);
+                        }
+                    } catch (Exception e) {
+                        System.err.println("Error loading team: " + e.getMessage());
+                    }
+                }
+            } catch (Exception e) {
+                System.err.println("Error loading player: " + e.getMessage());
+            }
+            
+            contentArea.getChildren().clear();
+            contentArea.getChildren().add(view);
+            
+            AnchorPane.setTopAnchor(view, 0.0);
+            AnchorPane.setBottomAnchor(view, 0.0);
+            AnchorPane.setLeftAnchor(view, 0.0);
+            AnchorPane.setRightAnchor(view, 0.0);
+            
+            updateStatus("Team view loaded");
+        } catch (IOException e) {
+            System.err.println("Error loading team view: " + e.getMessage());
+            updateStatus("Error loading view");
+        }
+    }
+    
+    /**
+     * Affiche les équipes disponibles
+     */
+    @FXML
+    public void showAvailableTeams() {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/available_teams.fxml"));
+            javafx.scene.Parent view = loader.load();
+            
+            // Initialiser avec un joueur par défaut
+            AvailableTeamsController ctrl = loader.getController();
+            services.PlayerService playerService = new services.PlayerService();
+            try {
+                entities.Player defaultPlayer = playerService.getById(1);
+                if (defaultPlayer != null) {
+                    ctrl.initWithPlayer(defaultPlayer);
+                }
+            } catch (Exception e) {
+                System.err.println("Error loading player: " + e.getMessage());
+            }
+            
+            contentArea.getChildren().clear();
+            contentArea.getChildren().add(view);
+            
+            AnchorPane.setTopAnchor(view, 0.0);
+            AnchorPane.setBottomAnchor(view, 0.0);
+            AnchorPane.setLeftAnchor(view, 0.0);
+            AnchorPane.setRightAnchor(view, 0.0);
+            
+            updateStatus("Available teams loaded");
+        } catch (IOException e) {
+            System.err.println("Error loading available teams: " + e.getMessage());
+            updateStatus("Error loading view");
+        }
+    }
+    
+    /**
+     * Affiche les demandes du joueur
+     */
+    @FXML
+    public void showMyRequests() {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/my_requests.fxml"));
+            javafx.scene.Parent view = loader.load();
+            
+            // Initialiser avec un joueur par défaut
+            MyRequestsController ctrl = loader.getController();
+            services.PlayerService playerService = new services.PlayerService();
+            try {
+                entities.Player defaultPlayer = playerService.getById(1);
+                if (defaultPlayer != null) {
+                    ctrl.initWithPlayer(defaultPlayer);
+                }
+            } catch (Exception e) {
+                System.err.println("Error loading player: " + e.getMessage());
+            }
+            
+            contentArea.getChildren().clear();
+            contentArea.getChildren().add(view);
+            
+            AnchorPane.setTopAnchor(view, 0.0);
+            AnchorPane.setBottomAnchor(view, 0.0);
+            AnchorPane.setLeftAnchor(view, 0.0);
+            AnchorPane.setRightAnchor(view, 0.0);
+            
+            updateStatus("My requests loaded");
+        } catch (IOException e) {
+            System.err.println("Error loading my requests: " + e.getMessage());
+            updateStatus("Error loading view");
+        }
+    }
+    
+    /**
+     * Affiche les invitations
+     */
+    @FXML
+    public void showInvitations() {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/invitations_view.fxml"));
+            javafx.scene.Parent view = loader.load();
+            
+            // Initialiser avec un joueur par défaut
+            InvitationsViewController ctrl = loader.getController();
+            services.PlayerService playerService = new services.PlayerService();
+            try {
+                entities.Player defaultPlayer = playerService.getById(1);
+                if (defaultPlayer != null) {
+                    ctrl.initWithPlayer(defaultPlayer);
+                }
+            } catch (Exception e) {
+                System.err.println("Error loading player: " + e.getMessage());
+            }
+            
+            contentArea.getChildren().clear();
+            contentArea.getChildren().add(view);
+            
+            AnchorPane.setTopAnchor(view, 0.0);
+            AnchorPane.setBottomAnchor(view, 0.0);
+            AnchorPane.setLeftAnchor(view, 0.0);
+            AnchorPane.setRightAnchor(view, 0.0);
+            
+            updateStatus("Invitations loaded");
+        } catch (IOException e) {
+            System.err.println("Error loading invitations: " + e.getMessage());
+            updateStatus("Error loading view");
+        }
     }
     
     // ==================== MÉTHODES UTILITAIRES ====================

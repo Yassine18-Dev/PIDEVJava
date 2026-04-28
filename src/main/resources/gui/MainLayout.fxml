@@ -23,13 +23,24 @@
     <left>
         <VBox styleClass="sidebar" prefWidth="200">
             <VBox alignment="TOP_LEFT" spacing="10" styleClass="menu-container">
-                <Button text="Dashboard" styleClass="sidebar-button" onAction="#showDashboard"/>
-                <Button text="Skins" styleClass="sidebar-button" onAction="#showSkins"/>
-                <Button text="Merch" styleClass="sidebar-button" onAction="#showMerch"/>
-                <Button text="All Products" styleClass="sidebar-button" onAction="#showAllProducts"/>
-                <Button text="Add Product" styleClass="sidebar-button button-primary" onAction="#showAddProduct"/>
+                <Label text="🏪 Shop" style="-fx-text-fill: #9CA3AF; -fx-font-size: 12px; -fx-font-weight: bold;"/>
+                <Button text="Dashboard" styleClass="sidebar-button button-success" onAction="#showDashboard"/>
+                <Button text="Skins" styleClass="sidebar-button button-success" onAction="#showSkins"/>
+                <Button text="Merch" styleClass="sidebar-button button-success" onAction="#showMerch"/>
+                <Button text="All Products" styleClass="sidebar-button button-success" onAction="#showAllProducts"/>
+                <Button text="Add Product" styleClass="sidebar-button button-success" onAction="#showAddProduct"/>
                 <Button text="Product Management" styleClass="sidebar-button button-success" onAction="#showProductManagement"/>
                 <Button text="Promotions Management" styleClass="sidebar-button button-success" onAction="#showPromoCodes"/>
+                <Button text="Cart" styleClass="sidebar-button button-success" onAction="#showCart"/>
+            </VBox>
+            <Separator style="-fx-background-color: #374151;"/>
+            <VBox alignment="TOP_LEFT" spacing="10" styleClass="menu-container">
+                <Label text="🎮 Player" style="-fx-text-fill: #9CA3AF; -fx-font-size: 12px; -fx-font-weight: bold;"/>
+                <Button text="Player Profile" styleClass="sidebar-button button-success" onAction="#showPlayerProfile"/>
+                <Button text="My Team" styleClass="sidebar-button button-success" onAction="#showTeamView"/>
+                <Button text="Available Teams" styleClass="sidebar-button button-success" onAction="#showAvailableTeams"/>
+                <Button text="My Requests" styleClass="sidebar-button button-success" onAction="#showMyRequests"/>
+                <Button text="Invitations" styleClass="sidebar-button button-success" onAction="#showInvitations"/>
             </VBox>
             <Separator style="-fx-background-color: #374151;"/>
             <Region VBox.vgrow="ALWAYS"/>

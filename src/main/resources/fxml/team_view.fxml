@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.shape.Circle?>
+
+<BorderPane xmlns="http://javafx.com/javafx/21"
+            xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="controllers.TeamViewController"
+            stylesheets="@../css/style.css">
+
+    <left>
+        <VBox styleClass="sidebar" prefWidth="220" spacing="8">
+            <padding><Insets top="30" right="15" bottom="20" left="15"/></padding>
+            <Label text="ArenaMind" styleClass="sidebar-logo"/>
+            <Region prefHeight="20"/>
+            <Button text="🏠  Profile"     styleClass="sidebar-btn" onAction="#backToProfile" maxWidth="Infinity"/>
+            <Button text="👥  My Team"     styleClass="sidebar-btn-active" maxWidth="Infinity"/>
+            <Button text="📩  Invitations" styleClass="sidebar-btn" onAction="#openInvitations" maxWidth="Infinity"/>
+        </VBox>
+    </left>
+
+    <center>
+        <ScrollPane fitToWidth="true" styleClass="transparent-scroll">
+            <VBox spacing="20">
+                <padding><Insets top="25" right="30" bottom="25" left="30"/></padding>
+
+                <HBox alignment="CENTER_LEFT" spacing="10">
+                    <Label fx:id="modeLabel" text="" styleClass="mode-banner"/>
+                </HBox>
+
+                <HBox styleClass="card" spacing="20" alignment="CENTER_LEFT">
+                    <StackPane prefWidth="100" prefHeight="100">
+                        <Circle radius="50" styleClass="avatar-bg"/>
+                        <Label fx:id="logoEmoji" text="🎮" style="-fx-font-size: 42px;"/>
+                    </StackPane>
+                    <VBox spacing="5" HBox.hgrow="ALWAYS">
+                        <Label fx:id="teamNameLabel" text="—" styleClass="title-label"/>
+                        <HBox spacing="10">
+                            <Label fx:id="teamGameLabel"   text="—" styleClass="game-badge"/>
+                            <Label fx:id="teamRosterLabel" text="—" styleClass="rank-badge"/>
+                        </HBox>
+                    </VBox>
+                    <VBox alignment="CENTER" spacing="2">
+                        <Label text="POWER SCORE" styleClass="score-label"/>
+                        <Label fx:id="powerScoreLabel" text="0" styleClass="score-value"/>
+                    </VBox>
+                    <VBox spacing="6" alignment="CENTER">
+                        <Button fx:id="discordBtn" text="🔗 DISCORD" onAction="#configureDiscord"
+                                style="-fx-background-color: #5865F2; -fx-text-fill: white;
+                                       -fx-font-weight: bold; -fx-background-radius: 14;
+                                       -fx-pref-height: 38; -fx-cursor: hand;"
+                                visible="false" managed="false"/>
+                        <Button fx:id="editTeamBtn" text="✏ MODIFIER" onAction="#editTeamInfo"
+                                styleClass="secondary-button"
+                                visible="false" managed="false"/>
+                    </VBox>
+                </HBox>
+
+                <VBox styleClass="card" spacing="14">
+                    <Label text="TEAM RADAR (FORCES &amp; FAIBLESSES)" styleClass="card-title"/>
+                    <StackPane fx:id="teamRadarContainer" prefHeight="320"/>
+                    <HBox spacing="20" alignment="CENTER">
+                        <VBox alignment="CENTER" spacing="2">
+                            <Label text="ÉQUILIBRE" styleClass="score-label"/>
+                            <Label fx:id="balanceScoreLabel" text="—" styleClass="score-value-small"/>
+                        </VBox>
+                        <VBox alignment="CENTER" spacing="2" HBox.hgrow="ALWAYS">
+                            <Label text="POINT FAIBLE" styleClass="score-label"/>
+                            <Label fx:id="weakestLabel" text="—" styleClass="score-value-small"/>
+                        </VBox>
+                    </HBox>
+                    <Label fx:id="recommendationLabel" text="" styleClass="subtitle-label" wrapText="true"/>
+                </VBox>
+
+                <VBox styleClass="card" spacing="12">
+                    <HBox alignment="CENTER_LEFT" spacing="10">
+                        <Label text="ROSTER" styleClass="card-title"/>
+                        <Region HBox.hgrow="ALWAYS"/>
+                        <Button fx:id="inviteBtn" text="+ INVITER UN JOUEUR"
+                                onAction="#invitePlayer" styleClass="button"/>
+                        <Button fx:id="invitationsListBtn" text="📋 VOIR INVITATIONS"
+                                onAction="#viewSentInvitations" styleClass="secondary-button"/>
+                    </HBox>
+                    <VBox fx:id="rosterBox" spacing="10"/>
+                </VBox>
+
+                <VBox fx:id="requestsCard" styleClass="card" spacing="12"
+                      visible="false" managed="false">
+                    <HBox alignment="CENTER_LEFT" spacing="10">
+                        <Label text="📥 DEMANDES REÇUES" styleClass="card-title"/>
+                        <Region HBox.hgrow="ALWAYS"/>
+                        <Label fx:id="requestsCountBadge" text="0" styleClass="rank-badge"/>
+                    </HBox>
+                    <VBox fx:id="requestsBox" spacing="10"/>
+                </VBox>
+            </VBox>
+        </ScrollPane>
+    </center>
+</BorderPane>
