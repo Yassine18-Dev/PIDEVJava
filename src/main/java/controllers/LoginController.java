@@ -108,8 +108,14 @@ public class LoginController {
             }
 
             if (sec.isBlocked(email)) {
-                mail.sendPermanentBlock(email);
-                showAlert("Compte bloqué", "Votre compte est bloqué définitivement. Contactez l'administrateur.", Alert.AlertType.ERROR);
+                mail.sendPermanentSupportMail(email);
+
+                showAlert(
+                        "Compte bloqué",
+                        "Votre compte est bloqué définitivement.\nUn email de sécurité a été envoyé avec les instructions de support.",
+                        Alert.AlertType.ERROR
+                );
+
                 resetCaptcha();
                 return;
             }
@@ -141,31 +147,35 @@ public class LoginController {
                 int r = sec.fail(email);
 
                 if (r == 5) {
-                    mail.sendBlock5(email);
+                    mail.sendAccountBlockedSupportMail(email, 5);
+
                     showAlert(
-                            "Sécurité",
-                            "3 tentatives échouées.\nCompte bloqué pendant 5 minutes.",
+                            "Compte bloqué",
+                            "3 tentatives échouées.\nVotre compte est bloqué pendant 5 minutes.\nUn email de sécurité a été envoyé.",
                             Alert.AlertType.ERROR
                     );
 
                 } else if (r == 15) {
-                    mail.sendBlock15(email);
+                    mail.sendAccountBlockedSupportMail(email, 15);
+
                     showAlert(
-                            "Sécurité",
-                            "Nouvelle récidive.\nCompte bloqué pendant 15 minutes.",
+                            "Compte bloqué",
+                            "Nouvelle récidive.\nVotre compte est bloqué pendant 15 minutes.\nUn email de sécurité a été envoyé.",
                             Alert.AlertType.ERROR
                     );
 
                 } else if (r == -1) {
-                    mail.sendBlockPermanent(email);
+                    mail.sendPermanentSupportMail(email);
+
                     showAlert(
                             "Compte bloqué",
-                            "Compte bloqué définitivement suite à plusieurs tentatives suspectes.",
+                            "Compte bloqué définitivement.\nUn email de sécurité a été envoyé avec les instructions de support.",
                             Alert.AlertType.ERROR
                     );
 
                 } else {
                     mail.sendFailedAttempt(email, r);
+
                     showAlert(
                             "Erreur",
                             "Email ou mot de passe incorrect.\nTentative " + r + "/3",
