@@ -12,6 +12,8 @@ import javafx.scene.control.TextField;
 import javafx.stage.Stage;
 import services.TournoiService;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDate;
 
 public class TournoiModifierController {
@@ -20,6 +22,7 @@ public class TournoiModifierController {
     @FXML private TextField tfLieu;
     @FXML private TextField tfDateDebut;
     @FXML private TextField tfDateFin;
+    @FXML private TextField tfPrixInscription;
 
     private Tournoi tournoi;
     private Runnable onClose;
@@ -36,10 +39,14 @@ public class TournoiModifierController {
 
     public void setTournoi(Tournoi tournoi) {
         this.tournoi = tournoi;
+
         tfNom.setText(tournoi.getNom());
         tfLieu.setText(tournoi.getLieu());
         tfDateDebut.setText(tournoi.getDateDebut());
         tfDateFin.setText(tournoi.getDateFin());
+
+        BigDecimal prix = tournoi.getPrixInscription() != null ? tournoi.getPrixInscription() : BigDecimal.ZERO;
+        tfPrixInscription.setText(prix.setScale(2, RoundingMode.HALF_UP).toString());
     }
 
     @FXML
@@ -53,8 +60,9 @@ public class TournoiModifierController {
         String lieu = tfLieu.getText().trim();
         String dateDebut = tfDateDebut.getText().trim();
         String dateFin = tfDateFin.getText().trim();
+        String prixText = tfPrixInscription.getText().trim().replace(",", ".");
 
-        if (nom.isEmpty() || lieu.isEmpty() || dateDebut.isEmpty() || dateFin.isEmpty()) {
+        if (nom.isEmpty() || lieu.isEmpty() || dateDebut.isEmpty() || dateFin.isEmpty() || prixText.isEmpty()) {
             showAlert("Attention", "Tous les champs sont obligatoires.");
             return;
         }
@@ -68,17 +76,33 @@ public class TournoiModifierController {
                 return;
             }
 
+            BigDecimal prix = new BigDecimal(prixText);
+
+            if (prix.compareTo(BigDecimal.ZERO) < 0) {
+                showAlert("Attention", "Le montant d'inscription ne peut pas être négatif.");
+                return;
+            }
+
             tournoi.setNom(nom);
             tournoi.setLieu(lieu);
             tournoi.setDateDebut(dateDebut);
             tournoi.setDateFin(dateFin);
+            tournoi.setPrixInscription(prix);
 
             service.modifierTournoi(tournoi);
+
             showAlert("Succès", "Tournoi modifié avec succès.");
-            if (onDataChanged != null) onDataChanged.run();
+
+            if (onDataChanged != null) {
+                onDataChanged.run();
+            }
+
             retour(event);
+
+        } catch (NumberFormatException e) {
+            showAlert("Erreur", "Le montant doit être un nombre valide. Exemple : 20.00");
         } catch (Exception e) {
-            showAlert("Erreur", "Vérifie les dates. Format demandé : yyyy-MM-dd");
+            showAlert("Erreur", "Vérifie les champs. Date demandée : yyyy-MM-dd et montant valide.");
         }
     }
 
@@ -88,6 +112,7 @@ public class TournoiModifierController {
             onClose.run();
             return;
         }
+
         openPage(event, "/tournoi.fxml", "Gestion des Tournois");
     }
 

@@ -1,6 +1,7 @@
 package controllers;
 
 import entities.Tournoi;
+import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
@@ -13,10 +14,14 @@ import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
-import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
+import services.StripeService;
 import services.TournoiService;
+import utils.BrowserUtils;
+import utils.SessionUtilisateur;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.List;
@@ -35,8 +40,10 @@ public class TournoiController {
     @FXML private Label lblLieu;
     @FXML private Label lblDateDebut;
     @FXML private Label lblDateFin;
+    @FXML private Label lblPrixInscription;
 
     private final TournoiService service = new TournoiService();
+    private final StripeService stripe = new StripeService();
     private final ObservableList<Tournoi> data = FXCollections.observableArrayList();
 
     @FXML
@@ -55,6 +62,30 @@ public class TournoiController {
                         return;
                     }
 
+                    if (tournoi.getId() == 0) {
+                        HBox row = new HBox(20);
+                        row.setAlignment(Pos.CENTER_LEFT);
+                        row.getStyleClass().add("pro-row");
+
+                        Label icon = new Label("+");
+                        icon.setPrefSize(34, 34);
+                        icon.getStyleClass().add("row-icon");
+
+                        Label text = new Label("Ajouter un tournoi");
+                        text.setPrefWidth(560);
+                        text.getStyleClass().add("row-title");
+
+                        row.getChildren().addAll(icon, text);
+                        row.setOnMouseClicked(e -> ouvrirAjouter(null));
+
+                        setText(null);
+                        setGraphic(row);
+                        return;
+                    }
+
+                    HBox container = new HBox(10);
+                    container.setAlignment(Pos.CENTER_LEFT);
+
                     HBox row = new HBox(20);
                     row.setAlignment(Pos.CENTER_LEFT);
                     row.getStyleClass().add("pro-row");
@@ -64,39 +95,78 @@ public class TournoiController {
                     icon.getStyleClass().add("row-icon");
 
                     Label nom = new Label(tournoi.getNom());
-                    nom.setPrefWidth(170);
+                    nom.setPrefWidth(150);
                     nom.getStyleClass().add("row-title");
 
                     Label lieu = new Label(tournoi.getLieu());
-                    lieu.setPrefWidth(100);
+                    lieu.setPrefWidth(90);
                     lieu.getStyleClass().add("row-text");
 
                     Label debut = new Label(tournoi.getDateDebut());
-                    debut.setPrefWidth(110);
+                    debut.setPrefWidth(100);
                     debut.getStyleClass().add("row-text");
 
                     Label fin = new Label(tournoi.getDateFin());
-                    fin.setPrefWidth(110);
+                    fin.setPrefWidth(100);
                     fin.getStyleClass().add("row-text");
 
-                    Label statut = new Label(getStatut(tournoi));
-                    statut.setPrefWidth(90);
-                    statut.setAlignment(Pos.CENTER);
-                    statut.getStyleClass().add(getStatutClass(tournoi));
+                    Label prix = new Label(formatPrix(tournoi.getPrixInscription()));
+                    prix.setPrefWidth(80);
+                    prix.getStyleClass().add("row-text");
 
-                    Label menu = new Label("⋮");
-                    menu.setStyle("-fx-text-fill: white; -fx-font-size: 20px;");
+                    row.getChildren().addAll(icon, nom, lieu, debut, fin, prix);
 
-                    row.getChildren().addAll(icon, nom, lieu, debut, fin, statut, menu);
+                    HBox actions = new HBox(8);
+                    actions.setAlignment(Pos.CENTER_RIGHT);
+                    actions.setVisible(false);
+                    actions.setManaged(false);
+                    actions.getStyleClass().add("row-actions");
+
+                    Button btnEdit = new Button("✎");
+                    btnEdit.getStyleClass().add("btn-edit");
+                    btnEdit.setOnAction(e -> {
+                        listTournois.getSelectionModel().select(tournoi);
+                        remplirDetails(tournoi);
+                        ouvrirModifier(null);
+                    });
+
+                    Button btnDelete = new Button("🗑");
+                    btnDelete.getStyleClass().add("btn-delete");
+                    btnDelete.setOnAction(e -> {
+                        listTournois.getSelectionModel().select(tournoi);
+                        remplirDetails(tournoi);
+                        ouvrirSupprimer(null);
+                    });
+
+                    actions.getChildren().addAll(btnEdit, btnDelete);
+
+                    container.setOnMouseEntered(e -> {
+                        actions.setVisible(true);
+                        actions.setManaged(true);
+                    });
+
+                    container.setOnMouseExited(e -> {
+                        actions.setVisible(false);
+                        actions.setManaged(false);
+                    });
+
+                    container.getChildren().addAll(row, actions);
+
                     setText(null);
-                    setGraphic(row);
+                    setGraphic(container);
                 }
             };
 
             cell.setOnMouseClicked(event -> {
-                if (!cell.isEmpty() && event.getClickCount() == 2) {
-                    listTournois.getSelectionModel().select(cell.getItem());
-                    ouvrirConsultationDepuisDoubleClick();
+                Tournoi item = cell.getItem();
+
+                if (!cell.isEmpty() && item != null && item.getId() != 0) {
+                    listTournois.getSelectionModel().select(item);
+                    remplirDetails(item);
+
+                    if (event.getClickCount() == 2) {
+                        ouvrirConsultationDepuisDoubleClick();
+                    }
                 }
             });
 
@@ -104,15 +174,34 @@ public class TournoiController {
         });
 
         listTournois.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, selected) -> {
-            if (selected != null) {
-                lblNom.setText(selected.getNom());
-                lblLieu.setText(selected.getLieu());
-                lblDateDebut.setText(selected.getDateDebut());
-                lblDateFin.setText(selected.getDateFin());
+            if (selected != null && selected.getId() != 0) {
+                remplirDetails(selected);
             }
         });
 
         loadData();
+    }
+
+    private Tournoi ligneAjouterTournoi() {
+        Tournoi t = new Tournoi();
+        t.setId(0);
+        t.setNom("Ajouter un tournoi");
+        return t;
+    }
+
+    private void remplirDetails(Tournoi selected) {
+        lblNom.setText(selected.getNom());
+        lblLieu.setText(selected.getLieu());
+        lblDateDebut.setText(selected.getDateDebut());
+        lblDateFin.setText(selected.getDateFin());
+        lblPrixInscription.setText(formatPrix(selected.getPrixInscription()));
+    }
+
+    private String formatPrix(BigDecimal prix) {
+        if (prix == null) {
+            return "0.00 €";
+        }
+        return prix.setScale(2, RoundingMode.HALF_UP) + " €";
     }
 
     private String getStatut(Tournoi tournoi) {
@@ -124,21 +213,17 @@ public class TournoiController {
             if (today.isBefore(debut)) return "À venir";
             if (today.isAfter(fin)) return "Terminé";
             return "Actif";
+
         } catch (Exception e) {
             return "Actif";
         }
     }
 
-    private String getStatutClass(Tournoi tournoi) {
-        String statut = getStatut(tournoi);
-        if ("À venir".equals(statut)) return "badge-coming";
-        if ("Terminé".equals(statut)) return "badge-ended";
-        return "badge-active";
-    }
-
     private void loadData() {
         try {
-            data.setAll(service.afficherTournois());
+            data.clear();
+            data.add(ligneAjouterTournoi());
+            data.addAll(service.afficherTournois());
             listTournois.setItems(data);
         } catch (SQLException e) {
             showAlert("Erreur", e.getMessage());
@@ -154,14 +239,24 @@ public class TournoiController {
             return;
         }
 
-        List<Tournoi> result = data.stream()
-                .filter(t -> t.getNom().toLowerCase().contains(keyword)
-                        || t.getLieu().toLowerCase().contains(keyword)
-                        || t.getDateDebut().toLowerCase().contains(keyword)
-                        || t.getDateFin().toLowerCase().contains(keyword))
-                .collect(Collectors.toList());
+        try {
+            List<Tournoi> result = service.afficherTournois().stream()
+                    .filter(t -> t.getNom().toLowerCase().contains(keyword)
+                            || t.getLieu().toLowerCase().contains(keyword)
+                            || t.getDateDebut().toLowerCase().contains(keyword)
+                            || t.getDateFin().toLowerCase().contains(keyword)
+                            || formatPrix(t.getPrixInscription()).toLowerCase().contains(keyword))
+                    .collect(Collectors.toList());
 
-        listTournois.setItems(FXCollections.observableArrayList(result));
+            ObservableList<Tournoi> filtered = FXCollections.observableArrayList();
+            filtered.add(ligneAjouterTournoi());
+            filtered.addAll(result);
+
+            listTournois.setItems(filtered);
+
+        } catch (SQLException e) {
+            showAlert("Erreur", e.getMessage());
+        }
     }
 
     @FXML
@@ -183,7 +278,8 @@ public class TournoiController {
     @FXML
     void ouvrirModifier(ActionEvent event) {
         Tournoi selected = listTournois.getSelectionModel().getSelectedItem();
-        if (selected == null) {
+
+        if (selected == null || selected.getId() == 0) {
             showAlert("Attention", "Sélectionne un tournoi à modifier.");
             return;
         }
@@ -198,7 +294,8 @@ public class TournoiController {
 
     private void ouvrirConsultationDepuisDoubleClick() {
         Tournoi selected = listTournois.getSelectionModel().getSelectedItem();
-        if (selected == null) {
+
+        if (selected == null || selected.getId() == 0) {
             return;
         }
 
@@ -212,7 +309,8 @@ public class TournoiController {
     @FXML
     void ouvrirSupprimer(ActionEvent event) {
         Tournoi selected = listTournois.getSelectionModel().getSelectedItem();
-        if (selected == null) {
+
+        if (selected == null || selected.getId() == 0) {
             showAlert("Attention", "Sélectionne un tournoi à supprimer.");
             return;
         }
@@ -223,6 +321,73 @@ public class TournoiController {
             c.setOnClose(this::fermerModal);
             c.setOnDataChanged(this::actualiserListe);
         });
+    }
+
+    @FXML
+    void payerInscription(ActionEvent event) {
+        try {
+            Tournoi tournoi = listTournois.getSelectionModel().getSelectedItem();
+
+            if (tournoi == null || tournoi.getId() == 0) {
+                showAlert("Erreur", "Sélectionne un tournoi.");
+                return;
+            }
+
+            Integer userId = SessionUtilisateur.getUserId();
+
+            if (userId == null) {
+                showAlert("Erreur", "Vous devez être connecté.");
+                return;
+            }
+
+            if (service.dejaInscrit(userId, tournoi.getId())) {
+                showAlert("Info", "Vous êtes déjà inscrit à ce tournoi.");
+                return;
+            }
+
+            BigDecimal prix = service.getPrix(tournoi.getId());
+
+            if (prix == null || prix.compareTo(BigDecimal.ZERO) <= 0) {
+                showAlert("Erreur", "Prix du tournoi invalide.");
+                return;
+            }
+
+            var session = stripe.createSession(tournoi.getId(), userId, prix);
+            BrowserUtils.open(session.getUrl());
+
+            showAlert("Paiement", "La page Stripe est ouverte. Termine le paiement dans le navigateur.");
+
+            new Thread(() -> {
+                try {
+                    for (int i = 0; i < 30; i++) {
+                        Thread.sleep(5000);
+
+                        if (stripe.isPaid(session.getId())) {
+                            service.inscrire(userId, tournoi.getId());
+
+                            Platform.runLater(() -> {
+                                showAlert("Succès", "Paiement confirmé. Inscription réussie !");
+                                actualiserListe();
+                            });
+
+                            return;
+                        }
+                    }
+
+                    Platform.runLater(() ->
+                            showAlert("Info", "Paiement non confirmé pour le moment.")
+                    );
+
+                } catch (Exception e) {
+                    Platform.runLater(() ->
+                            showAlert("Erreur", e.getMessage())
+                    );
+                }
+            }).start();
+
+        } catch (Exception e) {
+            showAlert("Erreur", e.getMessage());
+        }
     }
 
     @FXML
@@ -243,6 +408,7 @@ public class TournoiController {
             modalOverlay.setManaged(true);
             modalOverlay.setVisible(true);
             modalOverlay.toFront();
+
         } catch (Exception e) {
             showAlert("Erreur", e.getMessage());
         }
@@ -263,6 +429,7 @@ public class TournoiController {
             stage.setScene(new Scene(root));
             stage.setTitle(title);
             stage.show();
+
         } catch (Exception e) {
             showAlert("Erreur", e.getMessage());
         }
@@ -273,6 +440,7 @@ public class TournoiController {
         lblLieu.setText("-");
         lblDateDebut.setText("-");
         lblDateFin.setText("-");
+        lblPrixInscription.setText("-");
         listTournois.getSelectionModel().clearSelection();
     }
 

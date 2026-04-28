@@ -53,6 +53,14 @@
                 <Label fx:id="lblDateFin" styleClass="premium-value"/>
             </VBox>
         </HBox>
+
+        <HBox spacing="16" alignment="CENTER_LEFT" styleClass="premium-row,premium-row-blue">
+            <Label text="💳" prefWidth="54" prefHeight="54" styleClass="premium-icon,premium-icon-blue"/>
+            <VBox>
+                <Label text="MONTANT D'INSCRIPTION" styleClass="premium-label,premium-label-blue"/>
+                <Label fx:id="lblPrixInscription" styleClass="premium-value"/>
+            </VBox>
+        </HBox>
     </VBox>
 
     <Button text="←  Retour" prefWidth="360" styleClass="btn-primary" onAction="#retour"/>

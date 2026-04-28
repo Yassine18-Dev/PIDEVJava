@@ -9,9 +9,14 @@ public class Main extends Application {
 
     @Override
     public void start(Stage stage) throws Exception {
-        Scene scene = new Scene(FXMLLoader.load(getClass().getResource("/Tournoi.fxml")));
-        stage.setScene(scene);
+        FXMLLoader loader = new FXMLLoader(getClass().getResource("/Tournoi.fxml"));
+        Scene scene = new Scene(loader.load(), 1350, 820);
+
         stage.setTitle("Gestion Tournoi");
+        stage.setScene(scene);
+        stage.setMinWidth(1350);
+        stage.setMinHeight(820);
+        stage.centerOnScreen();
         stage.show();
     }
 

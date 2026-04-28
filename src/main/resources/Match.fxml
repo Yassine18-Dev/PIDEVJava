@@ -78,7 +78,7 @@
                             <Label text="☷" prefWidth="34" prefHeight="34" styleClass="section-icon"/>
                             <VBox>
                                 <Label text="Liste des matchs" styleClass="section-title"/>
-                                <Label text="Double-cliquez sur un match pour le consulter" styleClass="small-text"/>
+                                <Label text="Survolez une ligne pour modifier ou supprimer" styleClass="small-text"/>
                             </VBox>
                             <Region HBox.hgrow="ALWAYS"/>
                             <Label text="Matchs" styleClass="badge-ended"/>
@@ -89,6 +89,7 @@
                             <Label text="ÉQUIPE 2" prefWidth="140" styleClass="row-header"/>
                             <Label text="DATE" prefWidth="120" styleClass="row-header"/>
                             <Label text="SCORE" prefWidth="100" styleClass="row-header"/>
+                            <Label text="ACTIONS" prefWidth="100" styleClass="row-header"/>
                         </HBox>
 
                         <ListView fx:id="listMatchs" prefHeight="390" VBox.vgrow="ALWAYS" styleClass="pro-list"/>
@@ -131,15 +132,6 @@
                                 <Label fx:id="lblScore" text="-" styleClass="label-info"/>
                             </VBox>
                         </HBox>
-
-                        <Region VBox.vgrow="ALWAYS"/>
-
-                        <HBox spacing="12" alignment="CENTER">
-                            <Button text="+ Ajouter" prefWidth="135" styleClass="btn-primary" onAction="#ouvrirAjouter"/>
-                            <Button text="✎ Modifier" prefWidth="135" styleClass="btn-secondary" onAction="#ouvrirModifier"/>
-                        </HBox>
-
-                        <Button text="🗑 Supprimer" prefWidth="282" styleClass="btn-danger" onAction="#ouvrirSupprimer"/>
                     </VBox>
                 </HBox>
             </VBox>

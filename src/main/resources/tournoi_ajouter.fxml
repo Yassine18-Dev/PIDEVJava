@@ -52,6 +52,14 @@
                 <TextField fx:id="tfDateFin" promptText="yyyy-MM-dd" styleClass="premium-input"/>
             </VBox>
         </HBox>
+
+        <HBox spacing="16" alignment="CENTER_LEFT" styleClass="premium-row,premium-row-blue">
+            <Label text="💳" prefWidth="54" prefHeight="54" styleClass="premium-icon,premium-icon-blue"/>
+            <VBox>
+                <Label text="MONTANT D'INSCRIPTION" styleClass="premium-label,premium-label-blue"/>
+                <TextField fx:id="tfPrixInscription" promptText="Exemple : 20.00" styleClass="premium-input"/>
+            </VBox>
+        </HBox>
     </VBox>
 
     <HBox spacing="18" alignment="CENTER">

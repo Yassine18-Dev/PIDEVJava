@@ -6,7 +6,8 @@
 <StackPane xmlns="http://javafx.com/javafx/21"
            xmlns:fx="http://javafx.com/fxml/1"
            fx:controller="controllers.TournoiController"
-           prefWidth="1100" prefHeight="700"
+           prefWidth="1100"
+           prefHeight="700"
            stylesheets="@novos.css">
 
     <BorderPane prefWidth="1100" prefHeight="700">
@@ -73,23 +74,24 @@
 
                 <HBox spacing="20" VBox.vgrow="ALWAYS">
 
-                    <VBox spacing="14" prefWidth="680" styleClass="card-dark">
+                    <VBox spacing="14" prefWidth="720" styleClass="card-dark">
                         <HBox alignment="CENTER_LEFT" spacing="12">
                             <Label text="☷" prefWidth="34" prefHeight="34" styleClass="section-icon"/>
                             <VBox>
                                 <Label text="Liste des tournois" styleClass="section-title"/>
-                                <Label text="Double-cliquez sur un tournoi pour le consulter" styleClass="small-text"/>
+                                <Label text="Survolez une ligne pour modifier ou supprimer" styleClass="small-text"/>
                             </VBox>
                             <Region HBox.hgrow="ALWAYS"/>
                             <Label text="Tournois" styleClass="badge-ended"/>
                         </HBox>
 
                         <HBox spacing="20" style="-fx-padding: 0 14 0 54;">
-                            <Label text="NOM DU TOURNOI" prefWidth="170" styleClass="row-header"/>
-                            <Label text="LIEU" prefWidth="100" styleClass="row-header"/>
-                            <Label text="DATE DÉBUT" prefWidth="110" styleClass="row-header"/>
-                            <Label text="DATE FIN" prefWidth="110" styleClass="row-header"/>
-                            <Label text="STATUT" prefWidth="90" styleClass="row-header"/>
+                            <Label text="NOM DU TOURNOI" prefWidth="150" styleClass="row-header"/>
+                            <Label text="LIEU" prefWidth="90" styleClass="row-header"/>
+                            <Label text="DATE DÉBUT" prefWidth="100" styleClass="row-header"/>
+                            <Label text="DATE FIN" prefWidth="100" styleClass="row-header"/>
+                            <Label text="PRIX" prefWidth="80" styleClass="row-header"/>
+                            <Label text="ACTIONS" prefWidth="110" styleClass="row-header"/>
                         </HBox>
 
                         <ListView fx:id="listTournois" prefHeight="390" VBox.vgrow="ALWAYS" styleClass="pro-list"/>
@@ -133,14 +135,20 @@
                             </VBox>
                         </HBox>
 
-                        <Region VBox.vgrow="ALWAYS"/>
-
-                        <HBox spacing="12" alignment="CENTER">
-                            <Button text="+ Ajouter" prefWidth="135" styleClass="btn-primary" onAction="#ouvrirAjouter"/>
-                            <Button text="✎ Modifier" prefWidth="135" styleClass="btn-secondary" onAction="#ouvrirModifier"/>
+                        <HBox spacing="12" alignment="CENTER_LEFT" styleClass="detail-line">
+                            <Label text="💳" prefWidth="38" prefHeight="38" styleClass="detail-icon"/>
+                            <VBox>
+                                <Label text="Prix inscription" styleClass="stat-label"/>
+                                <Label fx:id="lblPrixInscription" text="-" styleClass="label-info"/>
+                            </VBox>
                         </HBox>
 
-                        <Button text="🗑 Supprimer" prefWidth="282" styleClass="btn-danger" onAction="#ouvrirSupprimer"/>
+                        <Region VBox.vgrow="ALWAYS"/>
+
+                        <Button text="💳 S'inscrire &amp; Payer"
+                                prefWidth="282"
+                                styleClass="btn-primary"
+                                onAction="#payerInscription"/>
                     </VBox>
                 </HBox>
             </VBox>

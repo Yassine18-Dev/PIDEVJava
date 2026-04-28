@@ -10,12 +10,16 @@ import javafx.scene.Scene;
 import javafx.scene.control.Label;
 import javafx.stage.Stage;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+
 public class TournoiConsulterController {
 
     @FXML private Label lblNom;
     @FXML private Label lblLieu;
     @FXML private Label lblDateDebut;
     @FXML private Label lblDateFin;
+    @FXML private Label lblPrixInscription;
 
     private Runnable onClose;
 
@@ -24,10 +28,16 @@ public class TournoiConsulterController {
     }
 
     public void setTournoi(Tournoi tournoi) {
-        lblNom.setText("Nom : " + tournoi.getNom());
-        lblLieu.setText("Lieu : " + tournoi.getLieu());
-        lblDateDebut.setText("Date début : " + tournoi.getDateDebut());
-        lblDateFin.setText("Date fin : " + tournoi.getDateFin());
+        lblNom.setText(tournoi.getNom());
+        lblLieu.setText(tournoi.getLieu());
+        lblDateDebut.setText(tournoi.getDateDebut());
+        lblDateFin.setText(tournoi.getDateFin());
+        lblPrixInscription.setText(formatPrix(tournoi.getPrixInscription()));
+    }
+
+    private String formatPrix(BigDecimal prix) {
+        if (prix == null) return "0.00 €";
+        return prix.setScale(2, RoundingMode.HALF_UP) + " €";
     }
 
     @FXML

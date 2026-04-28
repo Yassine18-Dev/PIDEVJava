@@ -52,6 +52,30 @@ public class MatchController {
                         return;
                     }
 
+                    if (match.getId() == 0) {
+                        HBox row = new HBox(20);
+                        row.setAlignment(Pos.CENTER_LEFT);
+                        row.getStyleClass().add("pro-row");
+
+                        Label icon = new Label("+");
+                        icon.setPrefSize(34, 34);
+                        icon.getStyleClass().add("row-icon");
+
+                        Label text = new Label("Ajouter un match");
+                        text.setPrefWidth(520);
+                        text.getStyleClass().add("row-title");
+
+                        row.getChildren().addAll(icon, text);
+                        row.setOnMouseClicked(e -> ouvrirAjouter(null));
+
+                        setText(null);
+                        setGraphic(row);
+                        return;
+                    }
+
+                    HBox container = new HBox(10);
+                    container.setAlignment(Pos.CENTER_LEFT);
+
                     HBox row = new HBox(20);
                     row.setAlignment(Pos.CENTER_LEFT);
                     row.getStyleClass().add("pro-row");
@@ -77,20 +101,59 @@ public class MatchController {
                     score.getStyleClass().add("badge-active");
                     score.setAlignment(Pos.CENTER);
 
-                    Label menu = new Label("⋮");
-                    menu.setStyle("-fx-text-fill: white; -fx-font-size: 20px;");
+                    row.getChildren().addAll(icon, equipe1, equipe2, date, score);
 
-                    row.getChildren().addAll(icon, equipe1, equipe2, date, score, menu);
+                    HBox actions = new HBox(8);
+                    actions.setAlignment(Pos.CENTER_RIGHT);
+                    actions.setVisible(false);
+                    actions.setManaged(false);
+                    actions.getStyleClass().add("row-actions");
+
+                    Button btnEdit = new Button("✎");
+                    btnEdit.getStyleClass().add("btn-edit");
+                    btnEdit.setOnAction(e -> {
+                        listMatchs.getSelectionModel().select(match);
+                        remplirDetails(match);
+                        ouvrirModifier(null);
+                    });
+
+                    Button btnDelete = new Button("🗑");
+                    btnDelete.getStyleClass().add("btn-delete");
+                    btnDelete.setOnAction(e -> {
+                        listMatchs.getSelectionModel().select(match);
+                        remplirDetails(match);
+                        ouvrirSupprimer(null);
+                    });
+
+                    actions.getChildren().addAll(btnEdit, btnDelete);
+
+                    container.setOnMouseEntered(e -> {
+                        actions.setVisible(true);
+                        actions.setManaged(true);
+                    });
+
+                    container.setOnMouseExited(e -> {
+                        actions.setVisible(false);
+                        actions.setManaged(false);
+                    });
+
+                    container.getChildren().addAll(row, actions);
 
                     setText(null);
-                    setGraphic(row);
+                    setGraphic(container);
                 }
             };
 
             cell.setOnMouseClicked(event -> {
-                if (!cell.isEmpty() && event.getClickCount() == 2) {
-                    listMatchs.getSelectionModel().select(cell.getItem());
-                    ouvrirConsultationDepuisDoubleClick();
+                Match item = cell.getItem();
+
+                if (!cell.isEmpty() && item != null && item.getId() != 0) {
+                    listMatchs.getSelectionModel().select(item);
+                    remplirDetails(item);
+
+                    if (event.getClickCount() == 2) {
+                        ouvrirConsultationDepuisDoubleClick();
+                    }
                 }
             });
 
@@ -98,20 +161,33 @@ public class MatchController {
         });
 
         listMatchs.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, selected) -> {
-            if (selected != null) {
-                lblEquipe1.setText(selected.getEquipe1());
-                lblEquipe2.setText(selected.getEquipe2());
-                lblDateMatch.setText(selected.getDateMatch());
-                lblScore.setText(selected.getScore());
+            if (selected != null && selected.getId() != 0) {
+                remplirDetails(selected);
             }
         });
 
         loadData();
     }
 
+    private Match ligneAjouterMatch() {
+        Match m = new Match();
+        m.setId(0);
+        m.setEquipe1("Ajouter un match");
+        return m;
+    }
+
+    private void remplirDetails(Match selected) {
+        lblEquipe1.setText(selected.getEquipe1());
+        lblEquipe2.setText(selected.getEquipe2());
+        lblDateMatch.setText(selected.getDateMatch());
+        lblScore.setText(selected.getScore());
+    }
+
     private void loadData() {
         try {
-            data.setAll(service.afficherMatchs());
+            data.clear();
+            data.add(ligneAjouterMatch());
+            data.addAll(service.afficherMatchs());
             listMatchs.setItems(data);
         } catch (SQLException e) {
             showAlert("Erreur", e.getMessage());
@@ -127,14 +203,23 @@ public class MatchController {
             return;
         }
 
-        List<Match> result = data.stream()
-                .filter(m -> m.getEquipe1().toLowerCase().contains(keyword)
-                        || m.getEquipe2().toLowerCase().contains(keyword)
-                        || m.getDateMatch().toLowerCase().contains(keyword)
-                        || m.getScore().toLowerCase().contains(keyword))
-                .collect(Collectors.toList());
+        try {
+            List<Match> result = service.afficherMatchs().stream()
+                    .filter(m -> m.getEquipe1().toLowerCase().contains(keyword)
+                            || m.getEquipe2().toLowerCase().contains(keyword)
+                            || m.getDateMatch().toLowerCase().contains(keyword)
+                            || m.getScore().toLowerCase().contains(keyword))
+                    .collect(Collectors.toList());
 
-        listMatchs.setItems(FXCollections.observableArrayList(result));
+            ObservableList<Match> filtered = FXCollections.observableArrayList();
+            filtered.add(ligneAjouterMatch());
+            filtered.addAll(result);
+
+            listMatchs.setItems(filtered);
+
+        } catch (SQLException e) {
+            showAlert("Erreur", e.getMessage());
+        }
     }
 
     @FXML
@@ -165,7 +250,7 @@ public class MatchController {
     void ouvrirModifier(ActionEvent event) {
         Match selected = listMatchs.getSelectionModel().getSelectedItem();
 
-        if (selected == null) {
+        if (selected == null || selected.getId() == 0) {
             showAlert("Attention", "Sélectionne un match à modifier.");
             return;
         }
@@ -189,7 +274,7 @@ public class MatchController {
     private void ouvrirConsultationDepuisDoubleClick() {
         Match selected = listMatchs.getSelectionModel().getSelectedItem();
 
-        if (selected == null) {
+        if (selected == null || selected.getId() == 0) {
             return;
         }
 
@@ -212,7 +297,7 @@ public class MatchController {
     void ouvrirSupprimer(ActionEvent event) {
         Match selected = listMatchs.getSelectionModel().getSelectedItem();
 
-        if (selected == null) {
+        if (selected == null || selected.getId() == 0) {
             showAlert("Attention", "Sélectionne un match à supprimer.");
             return;
         }
