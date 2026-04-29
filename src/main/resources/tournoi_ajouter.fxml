@@ -1,11 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
+
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
 <VBox xmlns="http://javafx.com/javafx/21"
       xmlns:fx="http://javafx.com/fxml/1"
       fx:controller="controllers.TournoiAjouterController"
-      spacing="18"
+      spacing="14"
       prefWidth="620"
       maxWidth="620"
       stylesheets="@novos.css"
@@ -20,12 +21,13 @@
         </VBox>
     </HBox>
 
-    <VBox spacing="13">
+    <VBox spacing="10">
+
         <HBox spacing="16" alignment="CENTER_LEFT" styleClass="premium-row,premium-row-pink">
             <Label text="📄" prefWidth="54" prefHeight="54" styleClass="premium-icon"/>
             <VBox>
                 <Label text="NOM DU TOURNOI" styleClass="premium-label"/>
-                <TextField fx:id="tfNom" promptText="Entrez le nom du tournoi" styleClass="premium-input"/>
+                <TextField fx:id="tfNom" promptText="Entrez le nom du tournoi" prefWidth="420" styleClass="premium-input"/>
             </VBox>
         </HBox>
 
@@ -33,7 +35,7 @@
             <Label text="📍" prefWidth="54" prefHeight="54" styleClass="premium-icon,premium-icon-blue"/>
             <VBox>
                 <Label text="LIEU" styleClass="premium-label,premium-label-blue"/>
-                <TextField fx:id="tfLieu" promptText="Entrez le lieu du tournoi" styleClass="premium-input"/>
+                <TextField fx:id="tfLieu" promptText="Entrez le lieu du tournoi" prefWidth="420" styleClass="premium-input"/>
             </VBox>
         </HBox>
 
@@ -41,7 +43,7 @@
             <Label text="📅" prefWidth="54" prefHeight="54" styleClass="premium-icon"/>
             <VBox>
                 <Label text="DATE DÉBUT" styleClass="premium-label"/>
-                <TextField fx:id="tfDateDebut" promptText="yyyy-MM-dd" styleClass="premium-input"/>
+                <TextField fx:id="tfDateDebut" promptText="yyyy-MM-dd" prefWidth="420" styleClass="premium-input"/>
             </VBox>
         </HBox>
 
@@ -49,7 +51,7 @@
             <Label text="✅" prefWidth="54" prefHeight="54" styleClass="premium-icon,premium-icon-purple"/>
             <VBox>
                 <Label text="DATE FIN" styleClass="premium-label,premium-label-purple"/>
-                <TextField fx:id="tfDateFin" promptText="yyyy-MM-dd" styleClass="premium-input"/>
+                <TextField fx:id="tfDateFin" promptText="yyyy-MM-dd" prefWidth="420" styleClass="premium-input"/>
             </VBox>
         </HBox>
 
@@ -57,9 +59,26 @@
             <Label text="💳" prefWidth="54" prefHeight="54" styleClass="premium-icon,premium-icon-blue"/>
             <VBox>
                 <Label text="MONTANT D'INSCRIPTION" styleClass="premium-label,premium-label-blue"/>
-                <TextField fx:id="tfPrixInscription" promptText="Exemple : 20.00" styleClass="premium-input"/>
+                <TextField fx:id="tfPrixInscription" promptText="Exemple : 20.00" prefWidth="420" styleClass="premium-input"/>
             </VBox>
         </HBox>
+
+        <HBox spacing="16" alignment="CENTER_LEFT" styleClass="premium-row,premium-row-pink">
+            <Label text="👥" prefWidth="54" prefHeight="54" styleClass="premium-icon"/>
+            <VBox>
+                <Label text="MAX PARTICIPANTS" styleClass="premium-label"/>
+                <TextField fx:id="tfMaxParticipants" promptText="Exemple : 10" prefWidth="420" styleClass="premium-input"/>
+            </VBox>
+        </HBox>
+
+        <HBox spacing="16" alignment="CENTER_LEFT" styleClass="premium-row,premium-row-purple">
+            <Label text="🏷" prefWidth="54" prefHeight="54" styleClass="premium-icon,premium-icon-purple"/>
+            <VBox>
+                <Label text="PRIX REMISÉ OPTIONNEL" styleClass="premium-label,premium-label-purple"/>
+                <TextField fx:id="tfDiscountPrice" promptText="Exemple : 15.00 ou vide" prefWidth="420" styleClass="premium-input"/>
+            </VBox>
+        </HBox>
+
     </VBox>
 
     <HBox spacing="18" alignment="CENTER">

@@ -1,11 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
+
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
 <VBox xmlns="http://javafx.com/javafx/21"
       xmlns:fx="http://javafx.com/fxml/1"
       fx:controller="controllers.MatchModifierController"
-      spacing="16"
+      spacing="14"
       prefWidth="620"
       maxWidth="620"
       stylesheets="@novos.css"
@@ -20,12 +21,13 @@
         </VBox>
     </HBox>
 
-    <VBox spacing="12">
+    <VBox spacing="10">
+
         <HBox spacing="16" alignment="CENTER_LEFT" styleClass="premium-row,premium-row-pink">
             <Label text="👥" prefWidth="54" prefHeight="54" styleClass="premium-icon"/>
             <VBox>
                 <Label text="ÉQUIPE 1" styleClass="premium-label"/>
-                <TextField fx:id="tfEquipe1" promptText="Equipe 1" styleClass="premium-input"/>
+                <ComboBox fx:id="cbTeam1" prefWidth="420" styleClass="premium-input"/>
             </VBox>
         </HBox>
 
@@ -33,7 +35,7 @@
             <Label text="👥" prefWidth="54" prefHeight="54" styleClass="premium-icon,premium-icon-blue"/>
             <VBox>
                 <Label text="ÉQUIPE 2" styleClass="premium-label,premium-label-blue"/>
-                <TextField fx:id="tfEquipe2" promptText="Equipe 2" styleClass="premium-input"/>
+                <ComboBox fx:id="cbTeam2" prefWidth="420" styleClass="premium-input"/>
             </VBox>
         </HBox>
 
@@ -41,7 +43,18 @@
             <Label text="📅" prefWidth="54" prefHeight="54" styleClass="premium-icon"/>
             <VBox>
                 <Label text="DATE DU MATCH" styleClass="premium-label"/>
-                <DatePicker fx:id="dpDateMatch" promptText="Date du match" styleClass="premium-date"/>
+                <DatePicker fx:id="dpDateMatch" prefWidth="420" styleClass="premium-date"/>
+            </VBox>
+        </HBox>
+
+        <HBox spacing="16" alignment="CENTER_LEFT" styleClass="premium-row,premium-row-blue">
+            <Label text="⏰" prefWidth="54" prefHeight="54" styleClass="premium-icon,premium-icon-blue"/>
+            <VBox>
+                <Label text="HEURE DU MATCH" styleClass="premium-label,premium-label-blue"/>
+                <TextField fx:id="tfHeureMatch"
+                           promptText="Ex : 18:30"
+                           prefWidth="420"
+                           styleClass="premium-input"/>
             </VBox>
         </HBox>
 
@@ -49,7 +62,7 @@
             <Label text="🏁" prefWidth="54" prefHeight="54" styleClass="premium-icon,premium-icon-purple"/>
             <VBox>
                 <Label text="SCORE" styleClass="premium-label,premium-label-purple"/>
-                <TextField fx:id="tfScore" promptText="Ex : 2-1" styleClass="premium-input"/>
+                <TextField fx:id="tfScore" prefWidth="420" styleClass="premium-input"/>
             </VBox>
         </HBox>
 
@@ -57,13 +70,31 @@
             <Label text="🏆" prefWidth="54" prefHeight="54" styleClass="premium-icon,premium-icon-blue"/>
             <VBox>
                 <Label text="TOURNOI ID" styleClass="premium-label,premium-label-blue"/>
-                <TextField fx:id="tfTournoiId" promptText="Tournoi ID" styleClass="premium-input"/>
+                <TextField fx:id="tfTournoiId" prefWidth="420" styleClass="premium-input"/>
             </VBox>
         </HBox>
+
     </VBox>
+    <HBox spacing="16" alignment="CENTER_LEFT" styleClass="premium-row,premium-row-purple">
+        <Label text="📌" prefWidth="54" prefHeight="54" styleClass="premium-icon,premium-icon-purple"/>
+        <VBox>
+            <Label text="ÉTAT DU MATCH" styleClass="premium-label,premium-label-purple"/>
+            <ComboBox fx:id="cbEtat"
+                      prefWidth="420"
+                      styleClass="premium-input"/>
+        </VBox>
+    </HBox>
 
     <HBox spacing="18" alignment="CENTER">
-        <Button text="✕  Annuler" prefWidth="190" styleClass="btn-secondary" onAction="#retour"/>
-        <Button text="✓  Enregistrer" prefWidth="250" styleClass="btn-primary" onAction="#modifierMatch"/>
+        <Button text="✕  Annuler"
+                prefWidth="190"
+                styleClass="btn-secondary"
+                onAction="#retour"/>
+
+        <Button text="✓  Enregistrer"
+                prefWidth="250"
+                styleClass="btn-primary"
+                onAction="#modifierMatch"/>
     </HBox>
+
 </VBox>

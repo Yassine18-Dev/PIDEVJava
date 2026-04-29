@@ -23,6 +23,8 @@ public class TournoiModifierController {
     @FXML private TextField tfDateDebut;
     @FXML private TextField tfDateFin;
     @FXML private TextField tfPrixInscription;
+    @FXML private TextField tfMaxParticipants;
+    @FXML private TextField tfDiscountPrice;
 
     private Tournoi tournoi;
     private Runnable onClose;
@@ -47,6 +49,11 @@ public class TournoiModifierController {
 
         BigDecimal prix = tournoi.getPrixInscription() != null ? tournoi.getPrixInscription() : BigDecimal.ZERO;
         tfPrixInscription.setText(prix.setScale(2, RoundingMode.HALF_UP).toString());
+
+        tfMaxParticipants.setText(String.valueOf(tournoi.getMaxParticipants()));
+
+        BigDecimal discount = tournoi.getDiscountPrice();
+        tfDiscountPrice.setText(discount == null ? "" : discount.setScale(2, RoundingMode.HALF_UP).toString());
     }
 
     @FXML
@@ -61,9 +68,12 @@ public class TournoiModifierController {
         String dateDebut = tfDateDebut.getText().trim();
         String dateFin = tfDateFin.getText().trim();
         String prixText = tfPrixInscription.getText().trim().replace(",", ".");
+        String maxText = tfMaxParticipants.getText().trim();
+        String discountText = tfDiscountPrice.getText().trim().replace(",", ".");
 
-        if (nom.isEmpty() || lieu.isEmpty() || dateDebut.isEmpty() || dateFin.isEmpty() || prixText.isEmpty()) {
-            showAlert("Attention", "Tous les champs sont obligatoires.");
+        if (nom.isEmpty() || lieu.isEmpty() || dateDebut.isEmpty() || dateFin.isEmpty()
+                || prixText.isEmpty() || maxText.isEmpty()) {
+            showAlert("Attention", "Tous les champs obligatoires doivent être remplis.");
             return;
         }
 
@@ -83,11 +93,41 @@ public class TournoiModifierController {
                 return;
             }
 
+            int maxParticipants = Integer.parseInt(maxText);
+
+            if (maxParticipants <= 0) {
+                showAlert("Attention", "Le nombre maximum de participants doit être supérieur à 0.");
+                return;
+            }
+
+            if (tournoi.getCurrentParticipants() > maxParticipants) {
+                showAlert("Attention", "Max participants ne peut pas être inférieur aux participants actuels.");
+                return;
+            }
+
+            BigDecimal discountPrice = null;
+
+            if (!discountText.isEmpty()) {
+                discountPrice = new BigDecimal(discountText);
+
+                if (discountPrice.compareTo(BigDecimal.ZERO) < 0) {
+                    showAlert("Attention", "Le prix remisé ne peut pas être négatif.");
+                    return;
+                }
+
+                if (discountPrice.compareTo(prix) >= 0) {
+                    showAlert("Attention", "Le prix remisé doit être inférieur au prix normal.");
+                    return;
+                }
+            }
+
             tournoi.setNom(nom);
             tournoi.setLieu(lieu);
             tournoi.setDateDebut(dateDebut);
             tournoi.setDateFin(dateFin);
             tournoi.setPrixInscription(prix);
+            tournoi.setMaxParticipants(maxParticipants);
+            tournoi.setDiscountPrice(discountPrice);
 
             service.modifierTournoi(tournoi);
 
@@ -100,9 +140,9 @@ public class TournoiModifierController {
             retour(event);
 
         } catch (NumberFormatException e) {
-            showAlert("Erreur", "Le montant doit être un nombre valide. Exemple : 20.00");
+            showAlert("Erreur", "Prix / remise / participants doivent être des valeurs valides.");
         } catch (Exception e) {
-            showAlert("Erreur", "Vérifie les champs. Date demandée : yyyy-MM-dd et montant valide.");
+            showAlert("Erreur", "Vérifie les champs. Date demandée : yyyy-MM-dd.");
         }
     }
 

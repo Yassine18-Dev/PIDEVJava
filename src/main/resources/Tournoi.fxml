@@ -14,13 +14,13 @@
 
         <left>
             <VBox spacing="26" prefWidth="235" styleClass="sidebar" style="-fx-padding:30;">
-                <Label text="Novos.GG" styleClass="logo"/>
+                <Label text="ArenaMind" styleClass="logo"/>
                 <Label text="ESPORT CONTROL HUB" styleClass="small-text"/>
 
                 <Button text="⌂  Dashboard" prefWidth="175" styleClass="nav-btn"/>
                 <Button text="🎮  Matchs" prefWidth="175" styleClass="nav-btn" onAction="#goToMatch"/>
                 <Button text="🏆  Tournois" prefWidth="175" styleClass="nav-active"/>
-                <Button text="⚙  Settings" prefWidth="175" styleClass="nav-btn"/>
+
 
                 <Region VBox.vgrow="ALWAYS"/>
                 <Label text="v1.0 ArenaMind" styleClass="small-text"/>
@@ -44,34 +44,38 @@
                 </HBox>
 
                 <HBox spacing="20">
+
+                    <!-- TOTAL -->
                     <HBox spacing="18" alignment="CENTER_LEFT" prefWidth="280" styleClass="card">
                         <Label text="🏆" prefWidth="54" prefHeight="54" styleClass="stat-icon"/>
                         <VBox spacing="4">
                             <Label text="TOTAL TOURNOIS" styleClass="stat-label"/>
-                            <Label text="128" styleClass="stat-number"/>
-                            <Label text="+12 cette semaine" styleClass="small-text"/>
+                            <Label fx:id="lblTotalTournois" text="0" styleClass="stat-number"/>
+                            <Label fx:id="lblTotalInfo" text="Tournois enregistrés" styleClass="small-text"/>
                         </VBox>
                     </HBox>
 
+                    <!-- ACTIFS -->
                     <HBox spacing="18" alignment="CENTER_LEFT" prefWidth="280" styleClass="card">
                         <Label text="⚡" prefWidth="54" prefHeight="54" styleClass="stat-icon"/>
                         <VBox spacing="4">
                             <Label text="ACTIFS" styleClass="stat-label"/>
-                            <Label text="64" styleClass="stat-number"/>
-                            <Label text="Peak : 81" styleClass="small-text"/>
+                            <Label fx:id="lblTournoisActifs" text="0" styleClass="stat-number"/>
+                            <Label fx:id="lblActifsInfo" text="Tournois en cours" styleClass="small-text"/>
                         </VBox>
                     </HBox>
 
+                    <!-- TERMINÉS -->
                     <HBox spacing="18" alignment="CENTER_LEFT" prefWidth="280" styleClass="card">
                         <Label text="✓" prefWidth="54" prefHeight="54" styleClass="stat-icon"/>
                         <VBox spacing="4">
                             <Label text="TERMINÉS" styleClass="stat-label"/>
-                            <Label text="37" styleClass="stat-number"/>
-                            <Label text="29% du total" styleClass="small-text"/>
+                            <Label fx:id="lblTournoisTermines" text="0" styleClass="stat-number"/>
+                            <Label fx:id="lblTerminesInfo" text="0% du total" styleClass="small-text"/>
                         </VBox>
                     </HBox>
-                </HBox>
 
+                </HBox>
                 <HBox spacing="20" VBox.vgrow="ALWAYS">
 
                     <VBox spacing="14" prefWidth="720" styleClass="card-dark">
@@ -90,14 +94,14 @@
                             <Label text="LIEU" prefWidth="90" styleClass="row-header"/>
                             <Label text="DATE DÉBUT" prefWidth="100" styleClass="row-header"/>
                             <Label text="DATE FIN" prefWidth="100" styleClass="row-header"/>
-                            <Label text="PRIX" prefWidth="80" styleClass="row-header"/>
+                            <Label text="PRIX / STATUT" prefWidth="115" styleClass="row-header"/>
                             <Label text="ACTIONS" prefWidth="110" styleClass="row-header"/>
                         </HBox>
 
                         <ListView fx:id="listTournois" prefHeight="390" VBox.vgrow="ALWAYS" styleClass="pro-list"/>
                     </VBox>
 
-                    <VBox spacing="16" prefWidth="320" styleClass="card-dark">
+                    <VBox spacing="14" prefWidth="320" styleClass="card-dark">
                         <HBox alignment="CENTER_LEFT" spacing="12">
                             <Label text="☷" prefWidth="34" prefHeight="34" styleClass="section-icon"/>
                             <Label text="Détails du tournoi" styleClass="section-title"/>
@@ -138,14 +142,25 @@
                         <HBox spacing="12" alignment="CENTER_LEFT" styleClass="detail-line">
                             <Label text="💳" prefWidth="38" prefHeight="38" styleClass="detail-icon"/>
                             <VBox>
-                                <Label text="Prix inscription" styleClass="stat-label"/>
-                                <Label fx:id="lblPrixInscription" text="-" styleClass="label-info"/>
+                                <Label text="Prix / Participants" styleClass="stat-label"/>
+                                <Label fx:id="lblPrixInscription" text="-" wrapText="true" styleClass="label-info"/>
+                            </VBox>
+                        </HBox>
+
+                        <HBox spacing="12" alignment="CENTER_LEFT" styleClass="detail-line">
+                            <Label text="👥" prefWidth="38" prefHeight="38" styleClass="detail-icon"/>
+                            <VBox>
+                                <Label text="Team à inscrire" styleClass="stat-label"/>
+                                <ComboBox fx:id="cbTeams"
+                                          promptText="Choisir une team"
+                                          prefWidth="220"
+                                          styleClass="premium-input"/>
                             </VBox>
                         </HBox>
 
                         <Region VBox.vgrow="ALWAYS"/>
 
-                        <Button text="💳 S'inscrire &amp; Payer"
+                        <Button text="💳 Inscrire une team &amp; Payer"
                                 prefWidth="282"
                                 styleClass="btn-primary"
                                 onAction="#payerInscription"/>

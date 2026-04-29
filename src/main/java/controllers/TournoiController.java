@@ -1,5 +1,6 @@
 package controllers;
 
+import entities.Team;
 import entities.Tournoi;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
@@ -16,6 +17,7 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
 import services.StripeService;
+import services.TeamService;
 import services.TournoiService;
 import utils.BrowserUtils;
 import utils.SessionUtilisateur;
@@ -35,6 +37,7 @@ public class TournoiController {
 
     @FXML private ListView<Tournoi> listTournois;
     @FXML private TextField tfRecherche;
+    @FXML private ComboBox<Team> cbTeams;
 
     @FXML private Label lblNom;
     @FXML private Label lblLieu;
@@ -42,12 +45,21 @@ public class TournoiController {
     @FXML private Label lblDateFin;
     @FXML private Label lblPrixInscription;
 
+    @FXML private Label lblTotalTournois;
+    @FXML private Label lblTournoisActifs;
+    @FXML private Label lblTournoisTermines;
+    @FXML private Label lblTotalInfo;
+    @FXML private Label lblActifsInfo;
+    @FXML private Label lblTerminesInfo;
+
     private final TournoiService service = new TournoiService();
+    private final TeamService teamService = new TeamService();
     private final StripeService stripe = new StripeService();
     private final ObservableList<Tournoi> data = FXCollections.observableArrayList();
 
     @FXML
     public void initialize() {
+        chargerTeams();
         listTournois.setItems(data);
 
         listTournois.setCellFactory(param -> {
@@ -110,9 +122,21 @@ public class TournoiController {
                     fin.setPrefWidth(100);
                     fin.getStyleClass().add("row-text");
 
-                    Label prix = new Label(formatPrix(tournoi.getPrixInscription()));
-                    prix.setPrefWidth(80);
-                    prix.getStyleClass().add("row-text");
+                    Label prix = new Label(formatPrixListe(tournoi));
+                    prix.setPrefWidth(135);
+                    prix.setAlignment(Pos.CENTER);
+
+                    String statut = getStatut(tournoi);
+
+                    if (tournoi.getCurrentParticipants() >= tournoi.getMaxParticipants()) {
+                        prix.getStyleClass().add("badge-ended");
+                    } else if (statut.equals("TERMINE")) {
+                        prix.getStyleClass().add("badge-ended");
+                    } else if (statut.equals("EN_COURS")) {
+                        prix.getStyleClass().add("badge-active");
+                    } else {
+                        prix.getStyleClass().add("badge-coming");
+                    }
 
                     row.getChildren().addAll(icon, nom, lieu, debut, fin, prix);
 
@@ -182,6 +206,14 @@ public class TournoiController {
         loadData();
     }
 
+    private void chargerTeams() {
+        try {
+            cbTeams.setItems(FXCollections.observableArrayList(teamService.findAll()));
+        } catch (Exception e) {
+            showAlert("Erreur", e.getMessage());
+        }
+    }
+
     private Tournoi ligneAjouterTournoi() {
         Tournoi t = new Tournoi();
         t.setId(0);
@@ -194,14 +226,62 @@ public class TournoiController {
         lblLieu.setText(selected.getLieu());
         lblDateDebut.setText(selected.getDateDebut());
         lblDateFin.setText(selected.getDateFin());
-        lblPrixInscription.setText(formatPrix(selected.getPrixInscription()));
+
+        String statut = getStatut(selected);
+
+        if (selected.getCurrentParticipants() >= selected.getMaxParticipants()) {
+            lblPrixInscription.setText("❌ COMPLET | "
+                    + selected.getCurrentParticipants() + "/" + selected.getMaxParticipants());
+            lblPrixInscription.setStyle("-fx-text-fill: #f87171; -fx-font-weight: bold;");
+        } else if (statut.equals("TERMINE")) {
+            lblPrixInscription.setText("🔴 Terminé | "
+                    + selected.getCurrentParticipants() + "/" + selected.getMaxParticipants());
+            lblPrixInscription.setStyle("-fx-text-fill: #f87171; -fx-font-weight: bold;");
+        } else if (selected.isDiscountAvailable()) {
+            lblPrixInscription.setText(
+                    "🟡 À venir | 🔥 Promo : " + formatPrix(selected.getPrixFinal())
+                            + " au lieu de " + formatPrix(selected.getPrixInscription())
+                            + " | " + selected.getCurrentParticipants()
+                            + "/" + selected.getMaxParticipants()
+            );
+            lblPrixInscription.setStyle("-fx-text-fill: #4ade80; -fx-font-weight: bold;");
+        } else if (statut.equals("EN_COURS")) {
+            lblPrixInscription.setText(
+                    "🟢 En cours | " + formatPrix(selected.getPrixInscription())
+                            + " | " + selected.getCurrentParticipants()
+                            + "/" + selected.getMaxParticipants()
+            );
+            lblPrixInscription.setStyle("-fx-text-fill: #4ade80; -fx-font-weight: bold;");
+        } else {
+            lblPrixInscription.setText(
+                    "🟡 À venir | " + formatPrix(selected.getPrixInscription())
+                            + " | " + selected.getCurrentParticipants()
+                            + "/" + selected.getMaxParticipants()
+            );
+            lblPrixInscription.setStyle("-fx-text-fill: #facc15; -fx-font-weight: bold;");
+        }
     }
 
-    private String formatPrix(BigDecimal prix) {
-        if (prix == null) {
-            return "0.00 €";
+    private String formatPrixListe(Tournoi tournoi) {
+        String statut = getStatut(tournoi);
+
+        if (tournoi.getCurrentParticipants() >= tournoi.getMaxParticipants()) {
+            return "❌ COMPLET";
         }
-        return prix.setScale(2, RoundingMode.HALF_UP) + " €";
+
+        if (statut.equals("TERMINE")) {
+            return "🔴 Terminé";
+        }
+
+        if (statut.equals("EN_COURS")) {
+            return "🟢 En cours | " + formatPrix(tournoi.getPrixInscription());
+        }
+
+        if (tournoi.isDiscountAvailable()) {
+            return "🟡 À venir | 🔥 " + formatPrix(tournoi.getPrixFinal());
+        }
+
+        return "🟡 À venir | " + formatPrix(tournoi.getPrixInscription());
     }
 
     private String getStatut(Tournoi tournoi) {
@@ -210,21 +290,55 @@ public class TournoiController {
             LocalDate debut = LocalDate.parse(tournoi.getDateDebut());
             LocalDate fin = LocalDate.parse(tournoi.getDateFin());
 
-            if (today.isBefore(debut)) return "À venir";
-            if (today.isAfter(fin)) return "Terminé";
-            return "Actif";
+            if (today.isBefore(debut)) return "A_VENIR";
+            if (today.isAfter(fin)) return "TERMINE";
+            return "EN_COURS";
 
         } catch (Exception e) {
-            return "Actif";
+            return "EN_COURS";
         }
+    }
+
+    private String formatPrix(BigDecimal prix) {
+        if (prix == null) {
+            return "0.00 €";
+        }
+
+        return prix.setScale(2, RoundingMode.HALF_UP) + " €";
     }
 
     private void loadData() {
         try {
             data.clear();
             data.add(ligneAjouterTournoi());
-            data.addAll(service.afficherTournois());
+
+            List<Tournoi> tournois = service.afficherTournois();
+            data.addAll(tournois);
+
+            int total = tournois.size();
+
+            long actifs = tournois.stream()
+                    .filter(t -> getStatut(t).equals("EN_COURS"))
+                    .count();
+
+            long termines = tournois.stream()
+                    .filter(t -> getStatut(t).equals("TERMINE"))
+                    .count();
+
+            if (lblTotalTournois != null) lblTotalTournois.setText(String.valueOf(total));
+            if (lblTournoisActifs != null) lblTournoisActifs.setText(String.valueOf(actifs));
+            if (lblTournoisTermines != null) lblTournoisTermines.setText(String.valueOf(termines));
+
+            if (lblTotalInfo != null) lblTotalInfo.setText("Tournois enregistrés");
+            if (lblActifsInfo != null) lblActifsInfo.setText("Tournois en cours");
+
+            if (lblTerminesInfo != null) {
+                int percent = total == 0 ? 0 : (int) ((termines * 100) / total);
+                lblTerminesInfo.setText(percent + "% du total");
+            }
+
             listTournois.setItems(data);
+
         } catch (SQLException e) {
             showAlert("Erreur", e.getMessage());
         }
@@ -245,7 +359,11 @@ public class TournoiController {
                             || t.getLieu().toLowerCase().contains(keyword)
                             || t.getDateDebut().toLowerCase().contains(keyword)
                             || t.getDateFin().toLowerCase().contains(keyword)
-                            || formatPrix(t.getPrixInscription()).toLowerCase().contains(keyword))
+                            || formatPrix(t.getPrixInscription()).toLowerCase().contains(keyword)
+                            || formatPrix(t.getPrixFinal()).toLowerCase().contains(keyword)
+                            || String.valueOf(t.getMaxParticipants()).contains(keyword)
+                            || String.valueOf(t.getCurrentParticipants()).contains(keyword)
+                            || getStatut(t).toLowerCase().contains(keyword))
                     .collect(Collectors.toList());
 
             ObservableList<Tournoi> filtered = FXCollections.observableArrayList();
@@ -264,6 +382,7 @@ public class TournoiController {
         tfRecherche.clear();
         clearDetails();
         loadData();
+        chargerTeams();
     }
 
     @FXML
@@ -333,6 +452,13 @@ public class TournoiController {
                 return;
             }
 
+            Team team = cbTeams.getValue();
+
+            if (team == null) {
+                showAlert("Attention", "Choisis une team à inscrire.");
+                return;
+            }
+
             Integer userId = SessionUtilisateur.getUserId();
 
             if (userId == null) {
@@ -340,8 +466,18 @@ public class TournoiController {
                 return;
             }
 
-            if (service.dejaInscrit(userId, tournoi.getId())) {
-                showAlert("Info", "Vous êtes déjà inscrit à ce tournoi.");
+            if (getStatut(tournoi).equals("TERMINE")) {
+                showAlert("Info", "Ce tournoi est terminé.");
+                return;
+            }
+
+            if (tournoi.getCurrentParticipants() >= tournoi.getMaxParticipants()) {
+                showAlert("Info", "Ce tournoi est complet.");
+                return;
+            }
+
+            if (service.teamDejaInscrite(team.getId(), tournoi.getId())) {
+                showAlert("Info", "Cette team est déjà inscrite à ce tournoi.");
                 return;
             }
 
@@ -363,10 +499,10 @@ public class TournoiController {
                         Thread.sleep(5000);
 
                         if (stripe.isPaid(session.getId())) {
-                            service.inscrire(userId, tournoi.getId());
+                            service.inscrireTeam(team.getId(), tournoi.getId());
 
                             Platform.runLater(() -> {
-                                showAlert("Succès", "Paiement confirmé. Inscription réussie !");
+                                showAlert("Succès", "Paiement confirmé. Team inscrite avec succès !");
                                 actualiserListe();
                             });
 
@@ -441,6 +577,8 @@ public class TournoiController {
         lblDateDebut.setText("-");
         lblDateFin.setText("-");
         lblPrixInscription.setText("-");
+        lblPrixInscription.setStyle("-fx-text-fill: white;");
+        cbTeams.getSelectionModel().clearSelection();
         listTournois.getSelectionModel().clearSelection();
     }
 

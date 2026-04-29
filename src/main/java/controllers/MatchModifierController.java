@@ -1,28 +1,32 @@
 package controllers;
 
 import entities.Match;
+import entities.Team;
+import javafx.collections.FXCollections;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
-import javafx.scene.control.Alert;
-import javafx.scene.control.DatePicker;
-import javafx.scene.control.TextField;
+import javafx.scene.control.*;
 import services.MatchService;
+import services.TeamService;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 public class MatchModifierController {
 
-    @FXML private TextField tfEquipe1;
-    @FXML private TextField tfEquipe2;
+    @FXML private ComboBox<Team> cbTeam1;
+    @FXML private ComboBox<Team> cbTeam2;
     @FXML private DatePicker dpDateMatch;
+    @FXML private TextField tfHeureMatch;
     @FXML private TextField tfScore;
     @FXML private TextField tfTournoiId;
+    @FXML private ComboBox<String> cbEtat;
 
     private Match match;
     private Runnable onClose;
     private Runnable onDataChanged;
 
     private final MatchService service = new MatchService();
+    private final TeamService teamService = new TeamService();
 
     public void setOnClose(Runnable onClose) {
         this.onClose = onClose;
@@ -32,18 +36,56 @@ public class MatchModifierController {
         this.onDataChanged = onDataChanged;
     }
 
+    @FXML
+    public void initialize() {
+        try {
+            cbTeam1.setItems(FXCollections.observableArrayList(teamService.findAll()));
+            cbTeam2.setItems(FXCollections.observableArrayList(teamService.findAll()));
+
+            cbEtat.setItems(FXCollections.observableArrayList(
+                    "A_VENIR",
+                    "EN_COURS",
+                    "TERMINE"
+            ));
+
+        } catch (Exception e) {
+            showAlert("Erreur", e.getMessage());
+        }
+    }
+
     public void setMatch(Match match) {
         this.match = match;
 
-        tfEquipe1.setText(match.getEquipe1());
-        tfEquipe2.setText(match.getEquipe2());
-        tfScore.setText(match.getScore());
-        tfTournoiId.setText(String.valueOf(match.getTournoiId()));
+        cbTeam1.getItems().forEach(t -> {
+            if (t.getId() == match.getTeam1Id()) cbTeam1.setValue(t);
+        });
 
-        try {
-            dpDateMatch.setValue(LocalDate.parse(match.getDateMatch()));
-        } catch (Exception e) {
-            dpDateMatch.setValue(null);
+        cbTeam2.getItems().forEach(t -> {
+            if (t.getId() == match.getTeam2Id()) cbTeam2.setValue(t);
+        });
+
+        dpDateMatch.setValue(java.time.LocalDate.parse(match.getDateMatch()));
+        tfHeureMatch.setText(match.getHeureMatch() == null ? "" : match.getHeureMatch());
+        tfTournoiId.setText(match.getTournoiId() > 0 ? String.valueOf(match.getTournoiId()) : "");
+
+        String etat = match.getEtat() == null || match.getEtat().isBlank()
+                ? "A_VENIR"
+                : match.getEtat();
+
+        cbEtat.setValue(etat);
+
+        appliquerReglesEtat(etat);
+    }
+
+    private void appliquerReglesEtat(String etat) {
+        if ("A_VENIR".equals(etat)) {
+            tfScore.setText("0-0");
+            tfScore.setDisable(true);
+        } else {
+            tfScore.setDisable(false);
+            tfScore.setText(match.getScore() == null || match.getScore().isBlank()
+                    ? "0-0"
+                    : match.getScore());
         }
     }
 
@@ -54,48 +96,81 @@ public class MatchModifierController {
             return;
         }
 
-        String equipe1 = tfEquipe1.getText().trim();
-        String equipe2 = tfEquipe2.getText().trim();
-        String score = tfScore.getText().trim();
-        String tournoiIdText = tfTournoiId.getText().trim();
+        Team team1 = cbTeam1.getValue();
+        Team team2 = cbTeam2.getValue();
 
-        if (equipe1.isEmpty() || equipe2.isEmpty() || score.isEmpty() || tournoiIdText.isEmpty() || dpDateMatch.getValue() == null) {
-            showAlert("Attention", "Tous les champs sont obligatoires.");
+        if (team1 == null || team2 == null || dpDateMatch.getValue() == null) {
+            showAlert("Attention", "Sélectionne les équipes et la date.");
             return;
         }
 
-        if (!tournoiIdText.matches("\\d+")) {
-            showAlert("Attention", "Le Tournoi ID doit être un nombre.");
+        if (team1.getId() == team2.getId()) {
+            showAlert("Attention", "Les équipes doivent être différentes.");
             return;
         }
 
-        if (!score.matches("\\d+-\\d+")) {
-            showAlert("Attention", "Le score doit être sous la forme : 2-1.");
+        String heure = tfHeureMatch.getText().trim();
+
+        if (heure.isEmpty()) {
+            showAlert("Attention", "L'heure du match est obligatoire. Exemple : 18:30");
             return;
         }
 
-        if (equipe1.equalsIgnoreCase(equipe2)) {
-            showAlert("Attention", "Les deux équipes doivent être différentes.");
+        if (!heure.matches("([01]\\d|2[0-3]):[0-5]\\d")) {
+            showAlert("Attention", "Format heure invalide. Exemple correct : 18:30");
             return;
         }
+
+        String etat = cbEtat.getValue();
+
+        if (etat == null || etat.isBlank()) {
+            showAlert("Attention", "Choisis l'état du match.");
+            return;
+        }
+
+        LocalDateTime dateHeureMatch = LocalDateTime.parse(dpDateMatch.getValue() + "T" + heure);
+        LocalDateTime maintenant = LocalDateTime.now();
+
+        String score;
+
+        if (dateHeureMatch.isAfter(maintenant)) {
+            etat = "A_VENIR";
+            score = "0-0";
+        } else {
+            score = tfScore.getText().trim();
+
+            if (!score.matches("\\d+-\\d+")) {
+                showAlert("Attention", "Score format : 2-1");
+                return;
+            }
+        }
+
+        int tournoiId = 0;
 
         try {
-            match.setEquipe1(equipe1);
-            match.setEquipe2(equipe2);
+            if (!tfTournoiId.getText().trim().isEmpty()) {
+                tournoiId = Integer.parseInt(tfTournoiId.getText().trim());
+            }
+
+            match.setEquipe1(team1.getName());
+            match.setEquipe2(team2.getName());
+            match.setTeam1Id(team1.getId());
+            match.setTeam2Id(team2.getId());
             match.setDateMatch(dpDateMatch.getValue().toString());
+            match.setHeureMatch(heure);
             match.setScore(score);
-            match.setTournoiId(Integer.parseInt(tournoiIdText));
+            match.setEtat(etat);
+            match.setTournoiId(tournoiId);
 
             service.modifierMatch(match);
 
             showAlert("Succès", "Match modifié avec succès.");
 
-            if (onDataChanged != null) {
-                onDataChanged.run();
-            }
+            if (onDataChanged != null) onDataChanged.run();
+            if (onClose != null) onClose.run();
 
-            retour(event);
-
+        } catch (NumberFormatException e) {
+            showAlert("Attention", "Tournoi ID doit être un nombre.");
         } catch (Exception e) {
             showAlert("Erreur", e.getMessage());
         }

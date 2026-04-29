@@ -15,6 +15,7 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
 import services.MatchService;
+import services.PredictionService;
 
 import java.sql.SQLException;
 import java.util.List;
@@ -30,10 +31,18 @@ public class MatchController {
     @FXML private Label lblDateMatch;
     @FXML private Label lblScore;
 
+    @FXML private Label lblTotalMatchs;
+    @FXML private Label lblMatchsActifs;
+    @FXML private Label lblMatchsTermines;
+    @FXML private Label lblTotalInfo;
+    @FXML private Label lblActifsInfo;
+    @FXML private Label lblTerminesInfo;
+
     @FXML private StackPane modalOverlay;
     @FXML private StackPane modalContent;
 
     private final MatchService service = new MatchService();
+    private final PredictionService predictionService = new PredictionService();
     private final ObservableList<Match> data = FXCollections.observableArrayList();
 
     @FXML
@@ -76,7 +85,7 @@ public class MatchController {
                     HBox container = new HBox(10);
                     container.setAlignment(Pos.CENTER_LEFT);
 
-                    HBox row = new HBox(20);
+                    HBox row = new HBox(18);
                     row.setAlignment(Pos.CENTER_LEFT);
                     row.getStyleClass().add("pro-row");
 
@@ -92,16 +101,30 @@ public class MatchController {
                     equipe2.setPrefWidth(140);
                     equipe2.getStyleClass().add("row-title");
 
-                    Label date = new Label(match.getDateMatch());
-                    date.setPrefWidth(120);
+                    Label date = new Label(match.getDateHeureMatch());
+                    date.setPrefWidth(150);
                     date.getStyleClass().add("row-text");
 
                     Label score = new Label(match.getScore());
-                    score.setPrefWidth(100);
+                    score.setPrefWidth(80);
                     score.getStyleClass().add("badge-active");
                     score.setAlignment(Pos.CENTER);
 
-                    row.getChildren().addAll(icon, equipe1, equipe2, date, score);
+                    String etatAuto = match.getEtatAuto();
+
+                    Label etat = new Label(etatAuto);
+                    etat.setPrefWidth(100);
+                    etat.setAlignment(Pos.CENTER);
+
+                    if ("A_VENIR".equals(etatAuto)) {
+                        etat.getStyleClass().add("badge-coming");
+                    } else if ("EN_COURS".equals(etatAuto)) {
+                        etat.getStyleClass().add("badge-active");
+                    } else {
+                        etat.getStyleClass().add("badge-ended");
+                    }
+
+                    row.getChildren().addAll(icon, equipe1, equipe2, date, score, etat);
 
                     HBox actions = new HBox(8);
                     actions.setAlignment(Pos.CENTER_RIGHT);
@@ -179,7 +202,7 @@ public class MatchController {
     private void remplirDetails(Match selected) {
         lblEquipe1.setText(selected.getEquipe1());
         lblEquipe2.setText(selected.getEquipe2());
-        lblDateMatch.setText(selected.getDateMatch());
+        lblDateMatch.setText(selected.getDateHeureMatch());
         lblScore.setText(selected.getScore());
     }
 
@@ -187,8 +210,34 @@ public class MatchController {
         try {
             data.clear();
             data.add(ligneAjouterMatch());
-            data.addAll(service.afficherMatchs());
+
+            List<Match> matchs = service.afficherMatchs();
+            data.addAll(matchs);
+
+            int total = matchs.size();
+
+            long actifs = matchs.stream()
+                    .filter(m -> "EN_COURS".equals(m.getEtatAuto()))
+                    .count();
+
+            long termines = matchs.stream()
+                    .filter(m -> "TERMINE".equals(m.getEtatAuto()))
+                    .count();
+
+            if (lblTotalMatchs != null) lblTotalMatchs.setText(String.valueOf(total));
+            if (lblMatchsActifs != null) lblMatchsActifs.setText(String.valueOf(actifs));
+            if (lblMatchsTermines != null) lblMatchsTermines.setText(String.valueOf(termines));
+
+            if (lblTotalInfo != null) lblTotalInfo.setText("Matchs enregistrés");
+            if (lblActifsInfo != null) lblActifsInfo.setText("Matchs en cours");
+
+            if (lblTerminesInfo != null) {
+                int percent = total == 0 ? 0 : (int) ((termines * 100) / total);
+                lblTerminesInfo.setText(percent + "% du total");
+            }
+
             listMatchs.setItems(data);
+
         } catch (SQLException e) {
             showAlert("Erreur", e.getMessage());
         }
@@ -208,7 +257,10 @@ public class MatchController {
                     .filter(m -> m.getEquipe1().toLowerCase().contains(keyword)
                             || m.getEquipe2().toLowerCase().contains(keyword)
                             || m.getDateMatch().toLowerCase().contains(keyword)
-                            || m.getScore().toLowerCase().contains(keyword))
+                            || (m.getHeureMatch() != null && m.getHeureMatch().toLowerCase().contains(keyword))
+                            || m.getDateHeureMatch().toLowerCase().contains(keyword)
+                            || m.getScore().toLowerCase().contains(keyword)
+                            || m.getEtatAuto().toLowerCase().contains(keyword))
                     .collect(Collectors.toList());
 
             ObservableList<Match> filtered = FXCollections.observableArrayList();
@@ -310,6 +362,32 @@ public class MatchController {
             controller.setMatch(selected);
             controller.setOnClose(this::fermerModal);
             controller.setOnDataChanged(this::actualiserApresModification);
+
+            afficherModal(root);
+
+        } catch (Exception e) {
+            showAlert("Erreur", e.getMessage());
+        }
+    }
+
+    @FXML
+    void predireMatch(ActionEvent event) {
+        Match selected = listMatchs.getSelectionModel().getSelectedItem();
+
+        if (selected == null || selected.getId() == 0) {
+            showAlert("Attention", "Sélectionne un match à prédire.");
+            return;
+        }
+
+        try {
+            String resultat = predictionService.predire(selected);
+
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/match_prediction.fxml"));
+            Parent root = loader.load();
+
+            MatchPredictionController controller = loader.getController();
+            controller.setPrediction(resultat);
+            controller.setOnClose(this::fermerModal);
 
             afficherModal(root);
 

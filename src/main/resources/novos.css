@@ -474,3 +474,17 @@
 .btn-delete:hover {
     -fx-background-color: linear-gradient(to right, #f87171, #fb7185);
 }
+.prediction-window-card {
+    -fx-background-color: #20243a;
+    -fx-background-radius: 22;
+    -fx-border-color: #8b5cf6;
+    -fx-border-radius: 22;
+    -fx-padding: 24;
+}
+
+.prediction-window-text {
+    -fx-text-fill: white;
+    -fx-font-size: 20px;
+    -fx-font-weight: bold;
+    -fx-line-spacing: 8px;
+}

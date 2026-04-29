@@ -15,6 +15,7 @@ public class MatchConsulterController {
     @FXML private Label lblEquipe1;
     @FXML private Label lblEquipe2;
     @FXML private Label lblDateMatch;
+    @FXML private Label lblHeureMatch;
     @FXML private Label lblScore;
 
     private Runnable onClose;
@@ -27,6 +28,7 @@ public class MatchConsulterController {
         lblEquipe1.setText(match.getEquipe1());
         lblEquipe2.setText(match.getEquipe2());
         lblDateMatch.setText(match.getDateMatch());
+        lblHeureMatch.setText(match.getHeureMatch() == null || match.getHeureMatch().isBlank() ? "-" : match.getHeureMatch());
         lblScore.setText(match.getScore());
     }
 

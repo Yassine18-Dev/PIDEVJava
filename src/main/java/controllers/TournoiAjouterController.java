@@ -22,6 +22,8 @@ public class TournoiAjouterController {
     @FXML private TextField tfDateDebut;
     @FXML private TextField tfDateFin;
     @FXML private TextField tfPrixInscription;
+    @FXML private TextField tfMaxParticipants;
+    @FXML private TextField tfDiscountPrice;
 
     private Runnable onClose;
     private Runnable onDataChanged;
@@ -42,9 +44,12 @@ public class TournoiAjouterController {
         String dateDebut = tfDateDebut.getText().trim();
         String dateFin = tfDateFin.getText().trim();
         String prixText = tfPrixInscription.getText().trim().replace(",", ".");
+        String maxText = tfMaxParticipants.getText().trim();
+        String discountText = tfDiscountPrice.getText().trim().replace(",", ".");
 
-        if (nom.isEmpty() || lieu.isEmpty() || dateDebut.isEmpty() || dateFin.isEmpty() || prixText.isEmpty()) {
-            showAlert("Attention", "Tous les champs sont obligatoires.");
+        if (nom.isEmpty() || lieu.isEmpty() || dateDebut.isEmpty() || dateFin.isEmpty()
+                || prixText.isEmpty() || maxText.isEmpty()) {
+            showAlert("Attention", "Tous les champs obligatoires doivent être remplis.");
             return;
         }
 
@@ -64,7 +69,33 @@ public class TournoiAjouterController {
                 return;
             }
 
+            int maxParticipants = Integer.parseInt(maxText);
+
+            if (maxParticipants <= 0) {
+                showAlert("Attention", "Le nombre maximum de participants doit être supérieur à 0.");
+                return;
+            }
+
+            BigDecimal discountPrice = null;
+
+            if (!discountText.isEmpty()) {
+                discountPrice = new BigDecimal(discountText);
+
+                if (discountPrice.compareTo(BigDecimal.ZERO) < 0) {
+                    showAlert("Attention", "Le prix remisé ne peut pas être négatif.");
+                    return;
+                }
+
+                if (discountPrice.compareTo(prix) >= 0) {
+                    showAlert("Attention", "Le prix remisé doit être inférieur au prix normal.");
+                    return;
+                }
+            }
+
             Tournoi tournoi = new Tournoi(nom, lieu, dateDebut, dateFin, prix);
+            tournoi.setMaxParticipants(maxParticipants);
+            tournoi.setCurrentParticipants(0);
+            tournoi.setDiscountPrice(discountPrice);
 
             service.ajouterTournoi(tournoi);
 
@@ -77,9 +108,9 @@ public class TournoiAjouterController {
             retour(event);
 
         } catch (NumberFormatException e) {
-            showAlert("Erreur", "Le montant doit être un nombre valide. Exemple : 20.00");
+            showAlert("Erreur", "Prix / remise / participants doivent être des valeurs valides.");
         } catch (Exception e) {
-            showAlert("Erreur", "Vérifie les champs. Date demandée : yyyy-MM-dd et montant valide.");
+            showAlert("Erreur", "Vérifie les champs. Date demandée : yyyy-MM-dd.");
         }
     }
 

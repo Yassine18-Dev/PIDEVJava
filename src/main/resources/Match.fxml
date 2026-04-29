@@ -13,13 +13,13 @@
 
         <left>
             <VBox spacing="26" prefWidth="235" styleClass="sidebar" style="-fx-padding:30;">
-                <Label text="Novos.GG" styleClass="logo"/>
+                <Label text="ArenaMind" styleClass="logo"/>
                 <Label text="ESPORT CONTROL HUB" styleClass="small-text"/>
 
                 <Button text="⌂  Dashboard" prefWidth="175" styleClass="nav-btn"/>
                 <Button text="🎮  Matchs" prefWidth="175" styleClass="nav-active"/>
                 <Button text="🏆  Tournois" prefWidth="175" styleClass="nav-btn" onAction="#goToTournoi"/>
-                <Button text="⚙  Settings" prefWidth="175" styleClass="nav-btn"/>
+
 
                 <Region VBox.vgrow="ALWAYS"/>
                 <Label text="v1.0 ArenaMind" styleClass="small-text"/>
@@ -40,37 +40,44 @@
                     <TextField fx:id="tfRecherche" promptText="🔍  Rechercher par équipe..." prefWidth="260"/>
                     <Button text="Rechercher" styleClass="btn-secondary" onAction="#rechercherMatch"/>
                     <Button text="Actualiser" styleClass="btn-primary" onAction="#actualiserListe"/>
+                    <Button text="🤖 Prédire"
+                            styleClass="btn-primary"
+                            onAction="#predireMatch"/>
                 </HBox>
 
                 <HBox spacing="20">
+
+                    <!-- TOTAL MATCHS -->
                     <HBox spacing="18" alignment="CENTER_LEFT" prefWidth="280" styleClass="card">
                         <Label text="🎮" prefWidth="54" prefHeight="54" styleClass="stat-icon"/>
                         <VBox spacing="4">
                             <Label text="TOTAL MATCHS" styleClass="stat-label"/>
-                            <Label text="128" styleClass="stat-number"/>
-                            <Label text="+12 cette semaine" styleClass="small-text"/>
+                            <Label fx:id="lblTotalMatchs" text="0" styleClass="stat-number"/>
+                            <Label fx:id="lblTotalInfo" text="Matchs enregistrés" styleClass="small-text"/>
                         </VBox>
                     </HBox>
 
+                    <!-- ACTIFS -->
                     <HBox spacing="18" alignment="CENTER_LEFT" prefWidth="280" styleClass="card">
                         <Label text="⚡" prefWidth="54" prefHeight="54" styleClass="stat-icon"/>
                         <VBox spacing="4">
                             <Label text="ACTIFS" styleClass="stat-label"/>
-                            <Label text="64" styleClass="stat-number"/>
-                            <Label text="Peak : 81" styleClass="small-text"/>
+                            <Label fx:id="lblMatchsActifs" text="0" styleClass="stat-number"/>
+                            <Label fx:id="lblActifsInfo" text="Matchs en cours" styleClass="small-text"/>
                         </VBox>
                     </HBox>
 
+                    <!-- TERMINÉS -->
                     <HBox spacing="18" alignment="CENTER_LEFT" prefWidth="280" styleClass="card">
                         <Label text="✓" prefWidth="54" prefHeight="54" styleClass="stat-icon"/>
                         <VBox spacing="4">
                             <Label text="TERMINÉS" styleClass="stat-label"/>
-                            <Label text="37" styleClass="stat-number"/>
-                            <Label text="29% du total" styleClass="small-text"/>
+                            <Label fx:id="lblMatchsTermines" text="0" styleClass="stat-number"/>
+                            <Label fx:id="lblTerminesInfo" text="0% du total" styleClass="small-text"/>
                         </VBox>
                     </HBox>
-                </HBox>
 
+                </HBox>
                 <HBox spacing="20" VBox.vgrow="ALWAYS">
 
                     <VBox spacing="14" prefWidth="680" styleClass="card-dark">
@@ -89,6 +96,7 @@
                             <Label text="ÉQUIPE 2" prefWidth="140" styleClass="row-header"/>
                             <Label text="DATE" prefWidth="120" styleClass="row-header"/>
                             <Label text="SCORE" prefWidth="100" styleClass="row-header"/>
+                            <Label text="ÉTAT" prefWidth="100" styleClass="row-header"/>
                             <Label text="ACTIONS" prefWidth="100" styleClass="row-header"/>
                         </HBox>
 
@@ -130,6 +138,26 @@
                             <VBox>
                                 <Label text="Score" styleClass="stat-label"/>
                                 <Label fx:id="lblScore" text="-" styleClass="label-info"/>
+                            </VBox>
+                            <VBox fx:id="predictionBox"
+                                  spacing="10"
+                                  visible="false"
+                                  managed="false"
+                                  styleClass="prediction-card">
+
+                                <HBox alignment="CENTER_LEFT" spacing="10">
+                                    <Label text="🤖" prefWidth="36" prefHeight="36" styleClass="prediction-icon"/>
+                                    <VBox spacing="2">
+                                        <Label text="PRÉDICTION IA" styleClass="prediction-title"/>
+                                        <Label text="Analyse locale du match" styleClass="prediction-subtitle"/>
+                                    </VBox>
+                                </HBox>
+
+                                <Label fx:id="predictionWinner"
+                                       text="Gagnant probable : -"
+                                       wrapText="true"
+                                       styleClass="prediction-winner"/>
+
                             </VBox>
                         </HBox>
                     </VBox>

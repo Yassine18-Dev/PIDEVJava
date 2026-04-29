@@ -4,11 +4,16 @@ import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
+import services.MatchReminderScheduler;
 
 public class Main extends Application {
 
     @Override
     public void start(Stage stage) throws Exception {
+
+        MatchReminderScheduler scheduler = new MatchReminderScheduler();
+        scheduler.start();
+
         FXMLLoader loader = new FXMLLoader(getClass().getResource("/Tournoi.fxml"));
         Scene scene = new Scene(loader.load(), 1350, 820);
 
