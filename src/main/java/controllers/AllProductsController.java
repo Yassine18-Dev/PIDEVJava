@@ -46,6 +46,24 @@ public class AllProductsController {
         loadProducts();
     }
     
+    /**
+     * Force le rechargement des produits (utilisé après modification)
+     */
+    public void refreshProducts() {
+        // Forcer le garbage collector pour libérer les ressources d'images
+        System.gc();
+        
+        // Attendre un peu pour que le GC s'exécute
+        javafx.application.Platform.runLater(() -> {
+            try {
+                Thread.sleep(100);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+            loadProducts();
+        });
+    }
+    
     private void setupFilters() {
         if (typeFilterComboBox != null) {
             typeFilterComboBox.getItems().addAll("All Types", "Skin", "Merch");

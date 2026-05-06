@@ -55,4 +55,5 @@ public abstract class Product {
     public void setImage(String image) { this.image = image; }
     public int getStock() { return stock; }
     public String getType() { return type; }
+    public void setType(String type) { this.type = type; }
 }

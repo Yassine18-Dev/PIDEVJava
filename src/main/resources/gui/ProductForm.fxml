@@ -62,8 +62,9 @@
                 <TextField fx:id="imageField" promptText="Enter image path or URL" 
                          styleClass="form-field" prefWidth="300"/>
                 <Button text="Browse" styleClass="button-secondary" onAction="#browseImage"/>
+                <Button text="🤖 IA" styleClass="secondary-button" onAction="#analyzeImageWithAI" prefWidth="80"/>
             </HBox>
-            <Label text="Formats acceptés: jpg, jpeg, png, gif, bmp" 
+            <Label text="Formats acceptés: jpg, jpeg, png, gif, bmp | IA analyse automatiquement l'image" 
                    style="-fx-font-size: 11px; -fx-text-fill: #9CA3AF; -fx-font-style: italic;"/>
         </VBox>
 

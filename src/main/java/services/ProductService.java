@@ -43,7 +43,7 @@ public class ProductService implements IProductService {
     // ✅ UPDATE
     @Override
     public void update(Product p) {
-        String sql = "UPDATE product SET name=?, price=?, description=?, image=?, stock=?, sizes=? WHERE id=?";
+        String sql = "UPDATE product SET name=?, price=?, description=?, image=?, stock=?, type=?, sizes=? WHERE id=?";
 
         try {
             PreparedStatement ps = cnx.prepareStatement(sql);
@@ -52,14 +52,15 @@ public class ProductService implements IProductService {
             ps.setString(3, p.getDescription());
             ps.setString(4, p.getImage());
             ps.setInt(5, p.getStock());
+            ps.setString(6, p.getType());
 
             if (p instanceof Merch) {
-                ps.setString(6, ((Merch) p).getSizes());
+                ps.setString(7, ((Merch) p).getSizes());
             } else {
-                ps.setString(6, null);
+                ps.setString(7, null);
             }
 
-            ps.setInt(7, p.getId());
+            ps.setInt(8, p.getId());
 
             ps.executeUpdate();
             System.out.println("✅ Product updated!");

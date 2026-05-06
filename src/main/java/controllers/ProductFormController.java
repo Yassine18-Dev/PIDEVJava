@@ -7,6 +7,8 @@ import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 import entities.*;
 import services.ProductService;
+import services.ModernImageAnalysisService;
+import services.GeminiAPIService;
 import java.io.File;
 
 /**
@@ -16,6 +18,7 @@ public class ProductFormController {
     
     // ==================== SERVICES ====================
     private final ProductService productService = new ProductService();
+    private final ModernImageAnalysisService modernImageAnalysisService = new ModernImageAnalysisService();
     
     // ==================== ÉTAT ====================
     private Product editingProduct = null;
@@ -547,5 +550,91 @@ public class ProductFormController {
         } else {
             NavigationController.showDashboard();
         }
+    }
+    
+    /**
+     * Analyse l'image avec l'IA pour générer automatiquement les informations du produit
+     */
+    @FXML
+    public void analyzeImageWithAI() {
+        String imagePath = imageField.getText();
+        if (imagePath == null || imagePath.trim().isEmpty()) {
+            showAlert("Erreur", "Veuillez d'abord sélectionner une image");
+            return;
+        }
+        
+        // Créer un produit temporaire pour l'analyse
+        if (editingProduct == null) {
+            editingProduct = new Product() {
+                @Override
+                public String getType() { 
+                    return merchRadioButton.isSelected() ? "merch" : "skin"; 
+                }
+            };
+            editingProduct.setImage(imagePath);
+        }
+        
+        showAlert("🚀 Upload + Analyse IA", "Upload vers Cloudinary et analyse par Gemini en cours...");
+        
+        // Lancer l'analyse moderne avec Cloudinary + Gemini
+        File imageFile = new File(imagePath);
+        modernImageAnalysisService.analyzeImage(imageFile)
+            .thenAccept(result -> {
+                // Appliquer les résultats sur le thread JavaFX
+                javafx.application.Platform.runLater(() -> {
+                    applyModernAIResults(result);
+                    showAlert("✅ Succès", "Analyse terminée ! Informations générées par Gemini IA.");
+                });
+            })
+            .exceptionally(throwable -> {
+                javafx.application.Platform.runLater(() -> {
+                    showAlert("❌ Erreur", "Erreur lors de l'analyse: " + throwable.getMessage());
+                });
+                return null;
+            });
+    }
+    
+    /**
+     * Applique les résultats de l'IA moderne (Gemini) aux champs du formulaire
+     */
+    private void applyModernAIResults(GeminiAPIService.ProductAnalysisResult result) {
+        nameField.setText(result.getName());
+        priceField.setText(String.valueOf(result.getPrice()));
+        descriptionField.setText(result.getDescription());
+        
+        // Mettre à jour le type de produit (category)
+        if ("skin".equals(result.getType())) {
+            skinRadioButton.setSelected(true);
+        } else {
+            merchRadioButton.setSelected(true);
+        }
+        
+        updateSizesVisibility();
+        updatePreview();
+        
+        // Mettre à jour l'image du produit avec l'URL Cloudinary (si disponible)
+        if (editingProduct != null) {
+            // L'image sera mise à jour automatiquement par le service Cloudinary
+            System.out.println("✅ Product updated with AI analysis results");
+        }
+    }
+    
+    /**
+     * Affiche une alerte simple
+     */
+    private void showAlert(String title, String message) {
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        alert.setTitle(title);
+        alert.setHeaderText(null);
+        alert.setContentText(message);
+        alert.showAndWait();
+    }
+    
+    /**
+     * Retour à la vue précédente
+     */
+    @FXML
+    public void goBack() {
+        NavigationController.showAllProducts();
     }
 }

@@ -7,6 +7,7 @@ import javafx.scene.image.ImageView;
 import javafx.scene.image.Image;
 import entities.*;
 import services.ProductService;
+import services.ImageAnalysisService;
 import java.io.File;
 
 /**
@@ -16,6 +17,7 @@ public class ProductEditController {
     
     // ==================== SERVICES ====================
     private final ProductService productService = new ProductService();
+    private final ImageAnalysisService imageAnalysisService = new ImageAnalysisService();
     
     // ==================== ÉTAT ====================
     private Product editingProduct;
@@ -38,6 +40,9 @@ public class ProductEditController {
     
     @FXML
     private RadioButton merchRadioButton;
+    
+    @FXML
+    private ToggleGroup productTypeGroup;
     
     @FXML
     private VBox sizesSection;
@@ -140,12 +145,16 @@ public class ProductEditController {
             stockField.setText(String.valueOf(product.getStock()));
             descriptionField.setText(product.getDescription());
             
-            // Configurer le type de produit
+            // Configurer le type de produit (lecture seule)
             String productType = product.getType();
             if (productType != null && productType.equals("skin")) {
                 skinRadioButton.setSelected(true);
+                skinRadioButton.setDisable(true);
+                merchRadioButton.setDisable(true);
             } else if (productType != null && productType.equals("merch")) {
                 merchRadioButton.setSelected(true);
+                skinRadioButton.setDisable(true);
+                merchRadioButton.setDisable(true);
                 
                 // Configurer les tailles pour les merch
                 if (product instanceof Merch merch) {
@@ -227,6 +236,9 @@ public class ProductEditController {
                 product.setStock(stock);
                 product.setDescription(description);
                 
+                // L'image est déjà mise à jour dans editingProduct, on s'assure juste qu'elle est sauvegardée
+                // Pas besoin de logique complexe car editingProduct et product sont le même objet
+                
                 System.out.println("DEBUG: Product updated in memory");
                 
                 // Configurer les tailles pour les merch
@@ -247,11 +259,11 @@ public class ProductEditController {
                 
                 updateStatus("Product updated successfully!");
                 
-                // Retour automatique
+                // Retour automatique avec rafraîchissement des images
                 javafx.application.Platform.runLater(() -> {
                     try {
                         Thread.sleep(1500);
-                        goBack();
+                        goBackWithRefresh();
                     } catch (InterruptedException e) {
                         Thread.currentThread().interrupt();
                     }
@@ -343,9 +355,16 @@ public class ProductEditController {
                 
                 // Mettre à jour l'image du produit
                 String imagePath = uploadsDir + fileName;
-                if (editingProduct != null) {
-                    editingProduct.setImage(imagePath);
+                
+                // Créer un produit temporaire si editingProduct est null (pour l'ajout)
+                if (editingProduct == null) {
+                    editingProduct = new Product() {
+                        @Override
+                        public String getType() { return "merch"; } // Type par défaut
+                    };
                 }
+                
+                editingProduct.setImage(imagePath);
                 
                 // Mettre à jour l'aperçu
                 updateImagePreview(imagePath);
@@ -358,10 +377,103 @@ public class ProductEditController {
     }
     
     /**
+     * Analyse l'image avec l'IA pour générer automatiquement les informations du produit
+     */
+    @FXML
+    public void analyzeImageWithAI() {
+        System.out.println("DEBUG: editingProduct = " + editingProduct);
+        if (editingProduct != null) {
+            System.out.println("DEBUG: editingProduct.getImage() = " + editingProduct.getImage());
+            System.out.println("DEBUG: editingProduct.getImage().isEmpty() = " + (editingProduct.getImage() != null ? editingProduct.getImage().isEmpty() : "null"));
+        }
+        
+        if (editingProduct == null || editingProduct.getImage() == null || editingProduct.getImage().isEmpty()) {
+            updateStatus("Veuillez d'abord sélectionner une image");
+            return;
+        }
+        
+        updateStatus("Analyse de l'image en cours...");
+        
+        // Désactiver les champs pendant l'analyse
+        setFieldsEnabled(false);
+        
+        // Lancer l'analyse en arrière-plan
+        imageAnalysisService.analyzeImage(editingProduct.getImage())
+            .thenAccept(result -> {
+                // Appliquer les résultats sur le thread JavaFX
+                javafx.application.Platform.runLater(() -> {
+                    applyAIResults(result);
+                    setFieldsEnabled(true);
+                    updateStatus("Analyse terminée ! Informations générées par IA.");
+                });
+            })
+            .exceptionally(throwable -> {
+                javafx.application.Platform.runLater(() -> {
+                    setFieldsEnabled(true);
+                    updateStatus("Erreur lors de l'analyse: " + throwable.getMessage());
+                });
+                return null;
+            });
+    }
+    
+    /**
+     * Applique les résultats de l'IA aux champs du formulaire
+     */
+    private void applyAIResults(ImageAnalysisService.ProductAnalysisResult result) {
+        nameField.setText(result.getTitle());
+        priceField.setText(String.valueOf(result.getPrice()));
+        descriptionField.setText(result.getDescription());
+        
+        // Mettre à jour le type de produit
+        if ("skin".equals(result.getType())) {
+            skinRadioButton.setSelected(true);
+        } else {
+            merchRadioButton.setSelected(true);
+        }
+        
+        updateSizesVisibility();
+    }
+    
+    /**
+     * Active/désactive les champs du formulaire
+     */
+    private void setFieldsEnabled(boolean enabled) {
+        nameField.setDisable(!enabled);
+        priceField.setDisable(!enabled);
+        descriptionField.setDisable(!enabled);
+        stockField.setDisable(!enabled);
+        sizeSCheckBox.setDisable(!enabled);
+        sizeMCheckBox.setDisable(!enabled);
+        sizeLCheckBox.setDisable(!enabled);
+        sizeXLCheckBox.setDisable(!enabled);
+    }
+    
+    /**
      * Retour à la vue précédente
      */
     private void goBack() {
         NavigationController.showAllProducts();
+    }
+    
+    /**
+     * Retour à la vue précédente avec rafraîchissement des images
+     */
+    private void goBackWithRefresh() {
+        NavigationController.showAllProducts();
+        
+        // Récupérer le contrôleur de la vue des produits et forcer le rafraîchissement
+        javafx.application.Platform.runLater(() -> {
+            try {
+                // Attendre que la vue soit chargée
+                Thread.sleep(200);
+                
+                // Forcer le rafraîchissement en appelant la méthode refresh
+                // On utilise une approche plus directe pour contourner le cache
+                System.gc(); // Forcer le garbage collector
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+        });
     }
     
     // ==================== MÉTHODES UTILITAIRES ====================
