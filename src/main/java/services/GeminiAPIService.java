@@ -4,6 +4,9 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.Base64;
 import java.util.concurrent.CompletableFuture;
 
 /**
@@ -12,22 +15,38 @@ import java.util.concurrent.CompletableFuture;
 public class GeminiAPIService {
     
     // Configuration Gemini API
-    private static final String GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent";
-    private static final String API_KEY = "AIzaSyD7RWmM0qSLDUHLkOZPEMV0-_N2PX0MUAA"; // Votre clé API
+    private static final String GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro-vision:generateContent";
+    private static final String API_KEY = "AIzaSyBH8SBT7hMy7mcR1RPoXqxYaWMhQ7c7jnU";
     
     /**
      * Analyse une image via son URL et retourne les informations du produit
      */
-    public CompletableFuture<ProductAnalysisResult> analyzeImageFromUrl(String imageUrl) {
+    public CompletableFuture<ImageAnalysisResult> analyzeImageFromUrl(String imageUrl) {
         return CompletableFuture.supplyAsync(() -> {
             try {
+                System.out.println("🤖 Gemini API - Starting analysis...");
+                System.out.println("🔗 Image path: " + imageUrl);
+                System.out.println("🔑 API Key (first 10 chars): " + API_KEY.substring(0, 10) + "...");
+                
                 // Construire le prompt pour Gemini
                 String prompt = buildPrompt();
+                System.out.println("📝 Prompt: " + prompt);
                 
-                // Construire la requête JSON
-                String requestBody = buildGeminiRequestBody(imageUrl, prompt);
+                // Lire le fichier local et convertir en base64
+                String base64Image = convertFileToBase64(imageUrl);
+                if (base64Image == null) {
+                    System.err.println("❌ Failed to read image file: " + imageUrl);
+                    return createFallbackResult();
+                }
+                
+                System.out.println("📦 Image converted to base64, length: " + base64Image.length() + " chars");
+                
+                // Construire la requête JSON avec base64
+                String requestBody = buildGeminiRequestBodyWithBase64(base64Image, prompt);
+                System.out.println("📦 Request body length: " + requestBody.length() + " bytes");
                 
                 // Envoyer la requête à Gemini API
+                System.out.println("🌐 Sending request to: " + GEMINI_API_URL);
                 HttpClient client = HttpClient.newHttpClient();
                 HttpRequest request = HttpRequest.newBuilder()
                     .uri(URI.create(GEMINI_API_URL + "?key=" + API_KEY))
@@ -36,15 +55,69 @@ public class GeminiAPIService {
                     .build();
                 
                 HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+                System.out.println("📥 Response status: " + response.statusCode());
+                System.out.println("📄 Response body: " + response.body());
                 
                 // Parser la réponse et extraire les informations
                 return parseGeminiResponse(response.body());
                 
             } catch (Exception e) {
-                System.err.println("Gemini API error: " + e.getMessage());
+                System.err.println("❌ Gemini API error: " + e.getMessage());
+                e.printStackTrace();
                 return createFallbackResult();
             }
         });
+    }
+    
+    /**
+     * Convertit un fichier local en base64
+     */
+    private String convertFileToBase64(String filePath) {
+        try {
+            // Construire le chemin complet du fichier
+            String fileName = filePath.startsWith("uploads/") ? filePath.substring(8) : filePath;
+            String fullPath = "uploads/" + fileName;
+            java.io.File file = new java.io.File(fullPath);
+            
+            if (!file.exists()) {
+                System.err.println("❌ File not found: " + fullPath);
+                // Essayer directement le chemin fourni
+                file = new java.io.File(filePath);
+                if (!file.exists()) {
+                    return null;
+                }
+            }
+            
+            byte[] fileContent = Files.readAllBytes(file.toPath());
+            return Base64.getEncoder().encodeToString(fileContent);
+            
+        } catch (Exception e) {
+            System.err.println("❌ Error converting file to base64: " + e.getMessage());
+            e.printStackTrace();
+            return null;
+        }
+    }
+    
+    /**
+     * Construit le corps de la requête pour Gemini API avec base64
+     */
+    private String buildGeminiRequestBodyWithBase64(String base64Image, String prompt) {
+        return "{"
+            + "\"contents\":[{"
+                + "\"parts\":[{"
+                    + "\"text\":\"" + escapeJson(prompt) + "\""
+                + "},{"
+                    + "\"inline_data\":{"
+                        + "\"mime_type\":\"image/jpeg\","
+                        + "\"data\":\"" + base64Image + "\""
+                    + "}"
+                + "}]"
+            + "}],"
+            + "\"generationConfig\":{"
+                + "\"temperature\":0.4,"
+                + "\"maxOutputTokens\":500"
+            + "}"
+            + "}";
     }
     
     /**
@@ -64,21 +137,26 @@ public class GeminiAPIService {
     private String buildGeminiRequestBody(String imageUrl, String prompt) {
         return "{"
             + "\"contents\":[{"
-            + "\"parts\":["
-            + "{\"text\":\"" + escapeJson(prompt) + "\"},"
-            + "{\"inline_data\":{"
-            + "\"mime_type\":\"image/jpeg\","
-            + "\"data\":\"" + imageUrl + "\""
-            + "}}"
-            + "]"
-            + "}]"
+                + "\"parts\":[{"
+                    + "\"text\":\"" + escapeJson(prompt) + "\""
+                + "},{"
+                    + "\"file_data\":{"
+                        + "\"mime_type\":\"image/jpeg\","
+                        + "\"file_uri\":\"" + escapeJson(imageUrl) + "\""
+                    + "}"
+                + "}]"
+            + "}],"
+            + "\"generationConfig\":{"
+                + "\"temperature\":0.4,"
+                + "\"maxOutputTokens\":500"
+            + "}"
             + "}";
     }
     
     /**
      * Parse la réponse JSON de Gemini API
      */
-    private ProductAnalysisResult parseGeminiResponse(String jsonResponse) {
+    private ImageAnalysisResult parseGeminiResponse(String jsonResponse) {
         try {
             // Parser simple pour extraire le texte de la réponse
             if (jsonResponse.contains("\"text\"")) {
@@ -107,8 +185,8 @@ public class GeminiAPIService {
     /**
      * Parse le JSON du produit
      */
-    private ProductAnalysisResult parseProductJson(String json) {
-        ProductAnalysisResult result = new ProductAnalysisResult();
+    private ImageAnalysisResult parseProductJson(String json) {
+        ImageAnalysisResult result = new ImageAnalysisResult();
         
         try {
             // Parser simple du JSON
@@ -137,7 +215,7 @@ public class GeminiAPIService {
                 result.setName("Gaming Product");
             }
             if (result.getDescription() == null || result.getDescription().isEmpty()) {
-                result.setDescription("High-quality gaming product for enthusiasts.");
+                result.setDescription("High-quality gaming product analyzed by AI.");
             }
             if (result.getType() == null) {
                 result.setType("merch");
@@ -155,8 +233,8 @@ public class GeminiAPIService {
     /**
      * Crée un résultat par défaut
      */
-    private ProductAnalysisResult createFallbackResult() {
-        ProductAnalysisResult result = new ProductAnalysisResult();
+    private ImageAnalysisResult createFallbackResult() {
+        ImageAnalysisResult result = new ImageAnalysisResult();
         result.setName("Gaming Product");
         result.setDescription("High-quality gaming product analyzed by AI.");
         result.setType("merch");
@@ -178,7 +256,7 @@ public class GeminiAPIService {
     /**
      * Classe de résultat pour l'analyse de produit
      */
-    public static class ProductAnalysisResult {
+    public static class ImageAnalysisResult {
         private String name;
         private String description;
         private String type;
@@ -210,6 +288,8 @@ public class GeminiAPIService {
             if ("merch".equals(type) && product instanceof entities.Merch) {
                 ((entities.Merch) product).setSizes("S,M,L,XL");
             }
+            
+            System.out.println("✅ Product updated with Gemini AI analysis results");
         }
     }
 }

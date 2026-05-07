@@ -381,50 +381,41 @@ public class ProductEditController {
      */
     @FXML
     public void analyzeImageWithAI() {
-        System.out.println("DEBUG: editingProduct = " + editingProduct);
-        if (editingProduct != null) {
-            System.out.println("DEBUG: editingProduct.getImage() = " + editingProduct.getImage());
-            System.out.println("DEBUG: editingProduct.getImage().isEmpty() = " + (editingProduct.getImage() != null ? editingProduct.getImage().isEmpty() : "null"));
-        }
-        
-        if (editingProduct == null || editingProduct.getImage() == null || editingProduct.getImage().isEmpty()) {
-            updateStatus("Veuillez d'abord sélectionner une image");
+        if (editingProduct == null || editingProduct.getImage() == null || editingProduct.getImage().trim().isEmpty()) {
+            showAlert("Erreur", "Veuillez d'abord charger un produit avec une image");
             return;
         }
         
-        updateStatus("Analyse de l'image en cours...");
+        System.out.println("DEBUG: editingProduct.getImage() = " + editingProduct.getImage());
         
-        // Désactiver les champs pendant l'analyse
-        setFieldsEnabled(false);
+        showAlert("🚀 Analyse IA Moderne", "Upload Cloudinary + Analyse Gemini Vision en cours...");
         
-        // Lancer l'analyse en arrière-plan
-        imageAnalysisService.analyzeImage(editingProduct.getImage())
+        // Lancer l'analyse avec l'URL existante
+        imageAnalysisService.analyzeImageFromUrl(editingProduct.getImage())
             .thenAccept(result -> {
                 // Appliquer les résultats sur le thread JavaFX
                 javafx.application.Platform.runLater(() -> {
-                    applyAIResults(result);
-                    setFieldsEnabled(true);
-                    updateStatus("Analyse terminée ! Informations générées par IA.");
+                    applyModernAIResults(result);
+                    showAlert("✅ Succès", "Analyse terminée ! Informations générées par IA moderne.");
                 });
             })
             .exceptionally(throwable -> {
                 javafx.application.Platform.runLater(() -> {
-                    setFieldsEnabled(true);
-                    updateStatus("Erreur lors de l'analyse: " + throwable.getMessage());
+                    showAlert("❌ Erreur", "Erreur lors de l'analyse: " + throwable.getMessage());
                 });
                 return null;
             });
     }
     
     /**
-     * Applique les résultats de l'IA aux champs du formulaire
+     * Applique les résultats de l'IA moderne (Gemini) aux champs du formulaire
      */
-    private void applyAIResults(ImageAnalysisService.ProductAnalysisResult result) {
-        nameField.setText(result.getTitle());
+    private void applyModernAIResults(services.ImageAnalysisService.ProductAnalysisResult result) {
+        nameField.setText(result.getName());
         priceField.setText(String.valueOf(result.getPrice()));
         descriptionField.setText(result.getDescription());
         
-        // Mettre à jour le type de produit
+        // Mettre à jour le type de produit (category)
         if ("skin".equals(result.getType())) {
             skinRadioButton.setSelected(true);
         } else {
@@ -432,6 +423,22 @@ public class ProductEditController {
         }
         
         updateSizesVisibility();
+        
+        // Mettre à jour l'image du produit avec l'URL Cloudinary (si disponible)
+        if (editingProduct != null) {
+            System.out.println("✅ Product updated with Gemini AI analysis results");
+        }
+    }
+    
+    /**
+     * Affiche une alerte simple
+     */
+    private void showAlert(String title, String message) {
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        alert.setTitle(title);
+        alert.setHeaderText(null);
+        alert.setContentText(message);
+        alert.showAndWait();
     }
     
     /**
